@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Determinar URL del Webhook (Prod vs Test)
         const urlParams = new URLSearchParams(window.location.search);
         const webhookUrl = urlParams.has('test') 
-            ? 'https://pandits.duckdns.org/webhook-test/rs1' 
-            : 'https://pandits.duckdns.org/webhook/rs1';
+            ? '/api/forward?test=true' 
+            : '/api/forward';
 
         // Simulación visual de carga
         const originalText = submitBtn.innerHTML;
