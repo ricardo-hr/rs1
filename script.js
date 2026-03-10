@@ -46,12 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             body: JSON.stringify(promptData)
         })
-        .then(response => {
+        .then(async response => {
             if (response.ok) {
                 console.log("Enviado exitosamente a:", webhookUrl);
                 return response.text(); // O .json() si el webhook responde con JSON
             }
-            throw new Error('Error en la petición: ' + response.statusText);
+            // Obtener el detalle del error si está disponible
+            const errorDetails = await response.text();
+            throw new Error(`Error ${response.status} (${response.statusText || 'Desconocido'}): ${errorDetails.substring(0, 150)}`);
         })
         .then(data => {
             // Mostrar éxito

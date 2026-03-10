@@ -15,6 +15,8 @@ export default async function handler(req, res) {
     }
 
     try {
+        console.log('Proxying request to webhook...');
+        
         // Determinar URL del Webhook basado en el parámetro query 'test'
         const isTest = req.query.test === 'true';
         const webhookUrl = isTest 
