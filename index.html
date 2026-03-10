@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Posts Instagram AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex items-center justify-center p-4">
+
+    <main class="w-full max-w-lg md:max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        
+        <!-- Encabezado -->
+        <header class="bg-white p-6 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white">
+                    <i class="fa-brands fa-instagram text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">AI Post Creator</h1>
+                    <p class="text-xs text-gray-500">Diseñado para iPhone y Escritorio</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Formulario -->
+        <form id="aiForm" class="p-6 space-y-6">
+            <div>
+                <label for="instruction" class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fa-solid fa-pen-nib mr-1 text-purple-600"></i> ¿De qué trata el post?
+                </label>
+                <textarea id="instruction" name="instruction" rows="3" placeholder="Ej: Anunciar el lanzamiento de nuestra nueva línea de café..." class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition resize-none text-sm md:text-base" required></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="context" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fa-solid fa-layer-group mr-1 text-blue-500"></i> Contexto Adicional
+                    </label>
+                    <textarea id="context" name="context" rows="4" placeholder="Ej: Público joven (18-25), tono ecológico..." class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none text-sm"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fa-solid fa-palette mr-1 text-pink-500"></i> Estilo del Post
+                    </label>
+                    <div class="space-y-3">
+                        <select id="style" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-pink-500 outline-none text-sm cursor-pointer">
+                            <option value="profesional">👔 Profesional & Serio</option>
+                            <option value="divertido">🤪 Divertido & Casual</option>
+                            <option value="minimalista">✨ Minimalista & Elegante</option>
+                            <option value="ventas">🔥 Enfocado en Ventas (FOMO)</option>
+                            <option value="educativo">📚 Educativo / Informativo</option>
+                        </select>
+                        <div class="flex items-center mt-4">
+                            <input id="useHashtags" type="checkbox" checked class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                            <label for="useHashtags" class="ml-2 block text-sm text-gray-600">Incluir Hashtags optimizados</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full btn-gradient text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg">
+                <span>Generar con IA</span>
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </button>
+        </form>
+
+        <!-- Área de Resultado -->
+        <div id="resultArea" class="hidden bg-gray-50 border-t border-gray-200 p-6">
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Resultado Simulado</h3>
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm relative">
+                <pre id="outputJson" class="text-xs font-mono text-gray-600 whitespace-pre-wrap break-words"></pre>
+                <div class="mt-4 text-center">
+                    <span class="text-green-600 text-sm font-semibold"><i class="fa-solid fa-check-circle"></i> Datos listos para enviar al Agente</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Lógica JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
