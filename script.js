@@ -1,8 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("🚀 Script versión 2.0 cargado en Vercel"); // Para confirmar que no es caché
     const form = document.getElementById('aiForm');
     const resultArea = document.getElementById('resultArea');
     const outputJson = document.getElementById('outputJson');
     const submitBtn = form.querySelector('button[type="submit"]');
+
+    // Indicador visual de modo BETA / TEST
+    const globalParams = new URLSearchParams(window.location.search);
+    if (globalParams.has('test')) {
+        const title = document.querySelector('h1');
+        const badge = document.createElement('span');
+        badge.className = 'ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200';
+        badge.innerHTML = '<i class="fa-solid fa-flask mr-1"></i> BETA';
+        title.appendChild(badge);
+    }
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -53,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // Obtener el detalle del error si está disponible
             const errorDetails = await response.text();
-            throw new Error(`Error ${response.status} (${response.statusText || 'Desconocido'}): ${errorDetails.substring(0, 150)}`);
+            throw new Error(`Falló la API (${response.status}): ${errorDetails.substring(0, 100) || 'Sin detalles del servidor'}`);
         })
         .then(data => {
             // Mostrar éxito
@@ -73,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Hubo un error al enviar los datos. Revisa la consola para más detalles.');
+            alert(`⚠️ Error: ${error.message}`);
         })
         .finally(() => {
             // Restaurar botón

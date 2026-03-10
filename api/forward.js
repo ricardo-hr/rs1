@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+        return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
     }
 
     try {
@@ -34,6 +34,11 @@ export default async function handler(req, res) {
 
         // Devolver la respuesta del webhook al frontend
         const data = await response.text();
+        
+        if (!response.ok) {
+            console.error(`Webhook Error (${response.status}):`, data);
+        }
+
         res.status(response.status).send(data);
 
     } catch (error) {
