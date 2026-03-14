@@ -328,9 +328,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     historyContent.addEventListener('click', (e) => {
         const historyCard = e.target.closest('.history-item');
+        const backButton = e.target.closest('#back-to-history');
+
         if (historyCard) {
             const idPost = historyCard.dataset.idPost;
             fetchPostDetails(idPost);
+            return;
+        }
+
+        if (backButton) {
+            resultArea.classList.add('hidden'); // Ocultar el resultado al volver
+            fetchHistory();
         }
     });
 
@@ -368,7 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
             postData = postData.post_json || postData;
 
             if (postData && (postData.hook || postData.id_post)) {
-                tabGenerate.click();
+                // No cambiamos de pestaña, mostramos el resultado en la pestaña actual.
+                historyContent.innerHTML = `
+                    <button id="back-to-history" class="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-purple-600 hover:text-purple-800 transition-colors">
+                        <i class="fa-solid fa-arrow-left"></i> Volver al historial
+                    </button>`;
                 resultArea.classList.remove('hidden');
                 renderFormattedResult(postData);
                 outputJson.textContent = `✅ Respuesta del Agente (Consulta ID: ${idPost}):\n${JSON.stringify(parsedData, null, 2)}`;
