@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cleanMessage = item.mensaje?.replace(/^"|"$/g, '');
 
             return `
-                <div class="bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-id-post="${item.id_post}" title="Haz clic para ver detalles (próximamente)">
+                <div class="history-item bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-id-post="${item.id_post}" title="Haz clic para cargar los detalles de esta idea">
                     <div class="flex justify-between items-start gap-4">
                         <div>
                             <p class="font-semibold text-gray-800 text-sm leading-tight">${item.hook || item.caption_corto}</p>
@@ -324,6 +324,63 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         historyContent.innerHTML = `<h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Historial de Ideas</h3>${historyHtml}`;
+    }
+
+    historyContent.addEventListener('click', (e) => {
+        const historyCard = e.target.closest('.history-item');
+        if (historyCard) {
+            const idPost = historyCard.dataset.idPost;
+            fetchPostDetails(idPost);
+        }
+    });
+
+    async function fetchPostDetails(idPost) {
+        console.log(`Consultando detalles para el post ID: ${idPost}`);
+        historyContent.innerHTML = `<div class="text-center p-6"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600"></i><p class="mt-2 text-sm text-gray-500">Cargando idea ID: ${idPost}...</p></div>`;
+
+        const payload = {
+            Flujo: "idea",
+            Action: "consultad",
+            id_post: idPost
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const webhookUrl = urlParams.has('test') 
+            ? '/api/forward?test=true' 
+            : '/api/forward';
+        
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error del servidor (${response.status}): ${errorText}`);
+            }
+
+            const responseText = await response.text();
+            const parsedData = JSON.parse(responseText);
+
+            let postData = (Array.isArray(parsedData) && parsedData.length > 0) ? parsedData[0] : parsedData;
+            postData = postData.post_json || postData;
+
+            if (postData && (postData.hook || postData.id_post)) {
+                tabGenerate.click();
+                resultArea.classList.remove('hidden');
+                renderFormattedResult(postData);
+                outputJson.textContent = `✅ Respuesta del Agente (Consulta ID: ${idPost}):\n${JSON.stringify(parsedData, null, 2)}`;
+                resultArea.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                throw new Error("La respuesta de la consulta no tiene el formato de post esperado.");
+            }
+        } catch (error) {
+            console.error('Error al consultar detalles del post:', error);
+            alert(`No se pudieron cargar los detalles: ${error.message}`);
+            fetchHistory(); // Vuelve a cargar la lista del historial en caso de error
+        }
     }
 
     async function fetchHistory() {
