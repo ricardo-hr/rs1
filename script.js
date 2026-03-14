@@ -188,6 +188,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isGenerated) {
                     const viewUrl = (slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : '#');
                     const downloadUrl = (slide.file_url_download && slide.file_url_download !== 'null') ? slide.file_url_download : '#';
+                    const thumbUrl = (slide.drive_file_id && slide.drive_file_id !== 'null')
+                        ? `https://drive.google.com/thumbnail?id=${slide.drive_file_id}&sz=w1200`
+                        : null;
+                    const directViewUrl = (slide.drive_file_id && slide.drive_file_id !== 'null')
+                        ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}`
+                        : null;
 
                     actionElement = `
                         <div class="flex items-center gap-2">
@@ -202,38 +208,57 @@ document.addEventListener('DOMContentLoaded', () => {
                             </a>
                         </div>
                     `;
-                    // Para previsualizar en <img>, intentamos primero una URL directa de Drive por ID.
-                    // Si falla, hacemos fallback a la URL de descarga y luego a la de vista.
-                    const imgSrc = (slide.drive_file_id && slide.drive_file_id !== 'null')
-                        ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}`
-                        : ((slide.file_url_download && slide.file_url_download !== 'null')
+                    // Para previsualizar en <img>, Drive suele funcionar mejor con thumbnail pública.
+                    // Si falla, probamos la URL directa por ID, luego descarga y al final la de vista.
+                    const imgSrc = thumbUrl
+                        || directViewUrl
+                        || ((slide.file_url_download && slide.file_url_download !== 'null')
                             ? slide.file_url_download
                             : ((slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : null));
 
                     if (imgSrc) {
                         imagePreview = `
                             <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block">
-                                <img
-                                    src="${imgSrc}"
-                                    alt="Slide ${slide.numero}"
-                                    class="w-full max-w-xs rounded object-contain"
-                                    referrerpolicy="no-referrer"
-                                    crossorigin="anonymous"
-                                    onerror="(function(img){
-                                        const downloadUrl = '${(slide.file_url_download || '').replace(/'/g, "\\'")}';
-                                        const viewUrl = '${(slide.file_url_view || '').replace(/'/g, "\\'")}';
-                                        if (!img.dataset.fallbackStep) {
-                                            img.dataset.fallbackStep = '1';
-                                            if (downloadUrl) { img.src = downloadUrl; return; }
-                                        }
-                                        if (img.dataset.fallbackStep === '1') {
-                                            img.dataset.fallbackStep = '2';
-                                            if (viewUrl) { img.src = viewUrl; return; }
-                                        }
-                                        img.style.display='none';
-                                        if (img.nextElementSibling) img.nextElementSibling.classList.remove('hidden');
-                                    })(this);" />
-                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible. Revisa permisos en Drive o intenta abrir el link "Ver".</p>
+                                <a href="${viewUrl}" target="_blank" rel="noopener noreferrer" class="block">
+                                    <img
+                                        src="${imgSrc}"
+                                        alt="Slide ${slide.numero}"
+                                        class="w-full max-w-xs rounded object-contain"
+                                        referrerpolicy="no-referrer"
+                                        crossorigin="anonymous"
+                                        onerror="(function(img){
+                                            const thumbUrl = '${(thumbUrl || '').replace(/'/g, "\\'")}';
+                                            const directViewUrl = '${(directViewUrl || '').replace(/'/g, "\\'")}';
+                                            const downloadUrl = '${(slide.file_url_download || '').replace(/'/g, "\\'")}';
+                                            const viewUrl = '${(slide.file_url_view || '').replace(/'/g, "\\'")}';
+                                            const current = img.dataset.fallbackStep || '0';
+
+                                            if (current === '0') {
+                                                img.dataset.fallbackStep = '1';
+                                                if (directViewUrl && img.src !== directViewUrl) { img.src = directViewUrl; return; }
+                                            }
+                                            if (current === '1') {
+                                                img.dataset.fallbackStep = '2';
+                                                if (downloadUrl && img.src !== downloadUrl) { img.src = downloadUrl; return; }
+                                            }
+                                            if (current === '2') {
+                                                img.dataset.fallbackStep = '3';
+                                                if (viewUrl && img.src !== viewUrl) { img.src = viewUrl; return; }
+                                            }
+
+                                            img.style.display='none';
+                                            if (img.closest('a')) img.closest('a').classList.add('hidden');
+                                            if (img.parentElement && img.parentElement.querySelector('.img-preview-fallback')) {
+                                                img.parentElement.querySelector('.img-preview-fallback').classList.remove('hidden');
+                                            }
+                                        })(this);" />
+                                </a>
+                                <div class="img-preview-fallback hidden text-xs text-red-400 mt-1 space-y-1">
+                                    <p><i class="fa-solid fa-image-slash"></i> Previsualización no disponible desde Drive en esta app.</p>
+                                    <a href="${viewUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 font-medium">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir imagen
+                                    </a>
+                                </div>
                             </div>
                         `;
                     }
