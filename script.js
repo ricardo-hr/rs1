@@ -364,8 +364,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const historyData = JSON.parse(responseText); // Intentar parsear el texto
             console.log("Datos del historial recibidos y parseados:", historyData); // LOG para depuración
 
-            if (Array.isArray(historyData) && historyData.length > 0) {
-                renderHistoryList(historyData);
+            // Normalizar la respuesta: siempre trabajar con un array
+            let dataToRender = [];
+            if (Array.isArray(historyData)) {
+                dataToRender = historyData;
+            } else if (historyData && typeof historyData === 'object' && Object.keys(historyData).length > 0) {
+                dataToRender = [historyData]; // Si es un solo objeto, lo convertimos en un array de un elemento
+            }
+
+            if (dataToRender.length > 0) {
+                renderHistoryList(dataToRender);
             } else {
                 historyContent.innerHTML = '<p class="text-gray-600 text-center p-6">No se encontraron ideas previas.</p>';
             }
