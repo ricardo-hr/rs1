@@ -1,3 +1,6 @@
+// Configura el tiempo máximo de ejecución en Vercel (60s es el máximo para el plan Hobby, hasta 300s en Pro)
+export const maxDuration = 60;
+
 export default async function handler(req, res) {
     // Configurar CORS para permitir peticiones desde el frontend
     res.setHeader('Access-Control-Allow-Origin', '*');

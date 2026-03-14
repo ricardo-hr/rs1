@@ -50,15 +50,21 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.classList.add('opacity-75');
 
+        // Configurar un tiempo de espera (timeout) de 60 segundos (60000 ms)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
         // Enviar datos reales al Webhook
         fetch(webhookUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(promptData)
+            body: JSON.stringify(promptData),
+            signal: controller.signal
         })
         .then(async response => {
+            clearTimeout(timeoutId); // Limpiamos el temporizador si responde a tiempo
             if (response.ok) {
                 console.log("Enviado exitosamente a:", webhookUrl);
                 return response.text(); // O .json() si el webhook responde con JSON
@@ -92,8 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
             resultArea.scrollIntoView({ behavior: 'smooth' });
         })
         .catch(error => {
+            clearTimeout(timeoutId); // Limpiamos el temporizador si falla
             console.error('Error:', error);
-            alert(`⚠️ Error: ${error.message}`);
+            if (error.name === 'AbortError') {
+                alert('⚠️ Error: El Agente de IA está tardando demasiado en generar las imágenes y se canceló la espera (Timeout de 60s).');
+            } else {
+                alert(`⚠️ Error: ${error.message}`);
+            }
         })
         .finally(() => {
             // Restaurar botón
@@ -112,13 +123,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (postData.slides && Array.isArray(postData.slides)) {
             slidesHtml = postData.slides.map((slide, index) => {
                 const imgInfo = imagesData[index];
-                const imgSize = imgInfo ? imgInfo.fileSize : 'No generada';
+                
+                // Validación y despliegue de datos de la imagen
+                let imageIndicator = '<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-full"><i class="fa-solid fa-image-slash"></i> Sin imagen</span>';
+                
+                if (imgInfo && imgInfo.mimeType) {
+                    const shortId = imgInfo.id ? imgInfo.id.split('/').pop().substring(0, 8) + '...' : 'ID desconocido';
+                    imageIndicator = `
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded-full border border-green-200 shadow-sm" title="${imgInfo.id}">
+                                <i class="fa-solid fa-check-circle"></i> Imagen Lista (${imgInfo.fileExtension ? imgInfo.fileExtension.toUpperCase() : 'PNG'})
+                            </span>
+                            <span class="text-[9px] text-gray-500 font-mono">Ref: ${shortId} | Peso: ${imgInfo.fileSize}</span>
+                        </div>
+                    `;
+                }
                 
                 return `
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-start justify-between mb-2">
                         <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo}</h4>
-                        <span class="text-[10px] bg-purple-100 text-purple-800 px-2 py-1 rounded-full"><i class="fa-solid fa-image"></i> Archivo: ${imgSize}</span>
+                        ${imageIndicator}
                     </div>
                     <p class="text-sm text-gray-600 mb-3">${slide.texto}</p>
                     <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded border border-blue-100">
