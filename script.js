@@ -173,7 +173,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo || 'Slide ' + slide.numero}</h4>
                         <button class="request-image-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-1.5 px-3 rounded text-xs transition-colors flex items-center gap-1 border border-indigo-200"
                                 data-id-post="${postData.id_post}"
-                                data-slide-number="${slide.numero}">
+                                data-slide-number="${slide.numero}"
+                                data-idea-visual="${(slide.idea_visual || '').replace(/"/g, '&quot;')}"
+                                data-prompt-visual="${(slide.prompt_visual || '').replace(/"/g, '&quot;')}">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Solicitar Imagen
                         </button>
                     </div>
@@ -231,6 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function requestImage(button) {
         const idPost = button.dataset.idPost;
         const slideNumber = button.dataset.slideNumber;
+        const ideaVisual = button.dataset.ideaVisual;
+        const promptVisual = button.dataset.promptVisual;
 
         const originalHtml = button.innerHTML;
         button.disabled = true;
@@ -242,7 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
             Flujo: "Imagene",
             Action: "Generar",
             id_post: idPost,
-            numero_slide: parseInt(slideNumber)
+            numero_slide: parseInt(slideNumber),
+            idea_visual: ideaVisual,
+            prompt_visual: promptVisual
         };
 
         const urlParams = new URLSearchParams(window.location.search);
