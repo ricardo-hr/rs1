@@ -83,9 +83,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsedData = JSON.parse(data);
                 formattedResponse = JSON.stringify(parsedData, null, 2);
                 
-                // Detectar si el JSON tiene la estructura de post de IA
-                if (Array.isArray(parsedData) && parsedData.length > 0 && parsedData[0].hook) {
-                    renderFormattedResult(parsedData);
+                // Detectar la nueva estructura que viene de la base de datos (post_json)
+                let postData = parsedData;
+                if (Array.isArray(parsedData) && parsedData[0]?.post_json) {
+                    postData = parsedData[0].post_json;
+                } else if (parsedData.post_json) {
+                    postData = parsedData.post_json;
+                } else if (Array.isArray(parsedData) && parsedData.length > 0) {
+                    postData = parsedData[0];
+                }
+
+                if (postData && (postData.hook || postData.id_post)) {
+                    renderFormattedResult(postData);
                 } else {
                     formattedResult.classList.add('hidden');
                 }
@@ -115,50 +124,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Función para renderizar el post bonito en la interfaz
-    function renderFormattedResult(parsedData) {
-        const postData = parsedData[0];
-        const imagesData = parsedData.slice(1); // El resto son imágenes
+    function renderFormattedResult(postData) {
         
         let slidesHtml = '';
         if (postData.slides && Array.isArray(postData.slides)) {
-            slidesHtml = postData.slides.map((slide, index) => {
-                const imgInfo = imagesData[index];
-                
-                // Validación y despliegue de datos de la imagen
-                let imageIndicator = '<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-full"><i class="fa-solid fa-image-slash"></i> Sin imagen</span>';
-                
-                if (imgInfo && imgInfo.mimeType) {
-                    const shortId = imgInfo.id ? imgInfo.id.split('/').pop().substring(0, 8) + '...' : 'ID desconocido';
-                    imageIndicator = `
-                        <div class="flex flex-col items-end gap-1">
-                            <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded-full border border-green-200 shadow-sm" title="${imgInfo.id}">
-                                <i class="fa-solid fa-check-circle"></i> Imagen Lista (${imgInfo.fileExtension ? imgInfo.fileExtension.toUpperCase() : 'PNG'})
-                            </span>
-                            <span class="text-[9px] text-gray-500 font-mono">Ref: ${shortId} | Peso: ${imgInfo.fileSize}</span>
-                        </div>
-                    `;
-                }
-                
+            slidesHtml = postData.slides.map((slide) => {
                 return `
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
                     <div class="flex items-start justify-between mb-2">
-                        <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo}</h4>
-                        ${imageIndicator}
+                        <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo || 'Slide ' + slide.numero}</h4>
+                        <button class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-1.5 px-3 rounded text-xs transition-colors flex items-center gap-1 border border-indigo-200"
+                                onclick="alert('Lógica pendiente: Enviar petición para id_post ${postData.id_post}, slide ${slide.numero}')"
+                                data-id-post="${postData.id_post}"
+                                data-slide="${slide.numero}">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Solicitar Imagen
+                        </button>
                     </div>
-                    <p class="text-sm text-gray-600 mb-3">${slide.texto}</p>
+                    <p class="text-sm text-gray-600 mb-3">${slide.texto || ''}</p>
                     <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded border border-blue-100">
-                        <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${slide.prompt_visual}
+                        <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${slide.prompt_visual || slide.idea_visual || ''}
                     </div>
                 </div>
                 `;
             }).join('');
         }
 
+        const hashtagsHtml = Array.isArray(postData.hashtags) 
+            ? postData.hashtags.join(' ') 
+            : (postData.hashtags || '');
+
         formattedResult.innerHTML = `
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-3 flex items-center gap-2">
-                    <i class="fa-brands fa-instagram text-white text-xl"></i>
-                    <h3 class="text-white font-bold">Post Generado Listo</h3>
+                <div class="bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-brands fa-instagram text-white text-xl"></i>
+                        <h3 class="text-white font-bold">Post Propuesto (ID: ${postData.id_post || 'N/A'})</h3>
+                    </div>
+                    <span class="bg-white/20 text-white text-xs px-2 py-1 rounded border border-white/30 capitalize">${postData.estatus || 'nuevo'}</span>
                 </div>
                 <div class="p-6">
                     <div class="mb-4">
@@ -167,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="mb-4">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Caption / Texto del Post</span>
-                        <p class="text-gray-700 text-sm mt-1 whitespace-pre-wrap">${postData.caption}</p>
-                        <p class="text-blue-500 text-sm mt-2 font-medium">${postData.hashtags.join(' ')}</p>
+                        <p class="text-gray-700 text-sm mt-1 whitespace-pre-wrap">${postData.caption || ''}</p>
+                        <p class="text-blue-500 text-sm mt-2 font-medium">${hashtagsHtml}</p>
                     </div>
                     <hr class="my-5 border-gray-100">
                     <h4 class="text-sm font-bold text-gray-800 mb-4"><i class="fa-solid fa-layer-group text-pink-500"></i> Diapositivas del Carrusel</h4>
