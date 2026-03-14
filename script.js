@@ -203,14 +203,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                     
-                    // Preferimos usar file_url_view si existe, si no, intentamos con el ID de Drive como respaldo
-                    const imgSrc = (slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}`;
+                    // Para previsualizar en etiqueta <img>, usamos obligatoriamente el export=view con el ID
+                    const imgSrc = (slide.drive_file_id && slide.drive_file_id !== 'null') ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}` : null;
 
-                    if (imgSrc && imgSrc !== '#' && imgSrc !== 'https://drive.google.com/uc?export=view&id=null') {
+                    if (imgSrc) {
                         imagePreview = `
                             <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block">
                                 <img src="${imgSrc}" alt="Slide ${slide.numero}" class="w-full max-w-xs rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
-                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible.</p>
+                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible. Revisa permisos en Drive.</p>
                             </div>
                         `;
                     }
