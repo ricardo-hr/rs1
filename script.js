@@ -364,12 +364,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const historyData = JSON.parse(responseText); // Intentar parsear el texto
             console.log("Datos del historial recibidos y parseados:", historyData); // LOG para depuración
 
-            // Normalizar la respuesta: siempre trabajar con un array
+            // Lógica de normalización robusta para la respuesta del historial
             let dataToRender = [];
+            // Caso 1: La respuesta es un array.
             if (Array.isArray(historyData)) {
-                dataToRender = historyData;
-            } else if (historyData && typeof historyData === 'object' && Object.keys(historyData).length > 0) {
-                dataToRender = [historyData]; // Si es un solo objeto, lo convertimos en un array de un elemento
+                // Si los elementos del array están envueltos en 'post_json', los extraemos.
+                if (historyData.length > 0 && historyData[0].post_json) {
+                    dataToRender = historyData.map(item => item.post_json);
+                } else {
+                    // Es un array limpio de posts.
+                    dataToRender = historyData;
+                }
+            } 
+            // Caso 2: La respuesta es un objeto.
+            else if (historyData && typeof historyData === 'object') {
+                // Si el array de posts está dentro de la propiedad 'post_json'.
+                if (historyData.post_json && Array.isArray(historyData.post_json)) {
+                    dataToRender = historyData.post_json;
+                } else {
+                    // Es un único objeto de post, lo envolvemos en un array.
+                    dataToRender = [historyData];
+                }
             }
 
             if (dataToRender.length > 0) {
