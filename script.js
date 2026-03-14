@@ -167,10 +167,34 @@ document.addEventListener('DOMContentLoaded', () => {
         let slidesHtml = '';
         if (postData.slides && Array.isArray(postData.slides)) {
             slidesHtml = postData.slides.map((slide) => {
-                return `
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
-                    <div class="flex items-start justify-between mb-2">
-                        <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo || 'Slide ' + slide.numero}</h4>
+                
+                let actionElement = '';
+                let imagePreview = '';
+
+                // Si la imagen ya fue generada, mostramos indicador, link y previsualización
+                if (slide.imagen_generada) {
+                    actionElement = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200 shadow-sm font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-check-circle"></i> Lista
+                            </span>
+                            <a href="${slide.file_url}" target="_blank" title="Abrir en Drive" class="bg-white text-gray-500 hover:text-purple-600 border border-gray-200 hover:border-purple-300 py-1 px-2 rounded text-xs transition-colors flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver
+                            </a>
+                        </div>
+                    `;
+                    
+                    if (slide.drive_file_id) {
+                        imagePreview = `
+                            <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block">
+                                <img src="https://drive.google.com/uc?export=view&id=${slide.drive_file_id}" alt="Slide ${slide.numero}" class="w-full max-w-xs rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible (revisa permisos en Drive).</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    // Si no está generada, mostramos el botón para solicitarla
+                    actionElement = `
                         <button class="request-image-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-1.5 px-3 rounded text-xs transition-colors flex items-center gap-1 border border-indigo-200"
                                 data-id-post="${postData.id_post}"
                                 data-slide-number="${slide.numero}"
@@ -178,11 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 data-prompt-visual="${(slide.prompt_visual || '').replace(/"/g, '&quot;')}">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Solicitar Imagen
                         </button>
+                    `;
+                }
+
+                return `
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo || 'Slide ' + slide.numero}</h4>
+                        ${actionElement}
                     </div>
                     <p class="text-sm text-gray-600 mb-3">${slide.texto || ''}</p>
                     <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded border border-blue-100">
                         <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${slide.prompt_visual || slide.idea_visual || ''}
                     </div>
+                    ${imagePreview}
                 </div>
                 `;
             }).join('');
