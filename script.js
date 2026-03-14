@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultArea = document.getElementById('resultArea');
     const outputJson = document.getElementById('outputJson');
     const formattedResult = document.getElementById('formattedResult');
+    const tabGenerate = document.getElementById('tab-generate');
+    const tabHistory = document.getElementById('tab-history');
+    const generateContent = document.getElementById('generate-content');
+    const historyContent = document.getElementById('history-content');
     const submitBtn = form.querySelector('button[type="submit"]');
 
     // Indicador visual de modo BETA / TEST
@@ -16,6 +20,38 @@ document.addEventListener('DOMContentLoaded', () => {
         title.appendChild(badge);
     }
 
+    // --- Lógica de Pestañas (Tabs) ---
+    tabGenerate.addEventListener('click', () => {
+        // Activar tab de generar
+        tabGenerate.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
+        tabGenerate.classList.remove('text-gray-500', 'hover:bg-gray-200');
+        
+        // Desactivar tab de historial
+        tabHistory.classList.add('text-gray-500', 'hover:bg-gray-200');
+        tabHistory.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+
+        // Mostrar/Ocultar contenido
+        generateContent.classList.remove('hidden');
+        historyContent.classList.add('hidden');
+        resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
+    });
+
+    tabHistory.addEventListener('click', () => {
+        // Activar tab de historial
+        tabHistory.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
+        tabHistory.classList.remove('text-gray-500', 'hover:bg-gray-200');
+        
+        // Desactivar tab de generar
+        tabGenerate.classList.add('text-gray-500', 'hover:bg-gray-200');
+        tabGenerate.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+
+        // Mostrar/Ocultar contenido
+        historyContent.classList.remove('hidden');
+        generateContent.classList.add('hidden');
+        resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
+        fetchHistory();
+    });
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -27,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Crear objeto JSON
         const promptData = {
-            Flujo: "Prompt",
+            Flujo: "idea",
             Action: "Genera",
             role: "system",
             task: "generate_instagram_post", // Se mantiene por compatibilidad si es necesario
@@ -246,5 +282,17 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.add('hover:bg-indigo-200');
             button.classList.remove('opacity-75', 'cursor-not-allowed');
         }
+    }
+
+    function fetchHistory() {
+        console.log("Iniciando consulta de historial...");
+        const payload = {
+            Flujo: "idea",
+            Action: "historia"
+        };
+        // Aquí iría la lógica de fetch al webhook con este payload
+        // Por ahora, solo mostramos una alerta y el payload en consola.
+        console.log("Payload para historial:", payload);
+        alert("Funcionalidad 'Ideas Previas' pendiente de implementación. El payload a enviar está en la consola.");
     }
 });

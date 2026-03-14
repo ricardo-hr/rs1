@@ -28,8 +28,21 @@
             </div>
         </header>
 
-        <!-- Formulario -->
-        <form id="aiForm" class="p-6 space-y-6">
+        <!-- Menú de Flujo -->
+        <div class="p-6 border-b border-gray-100">
+            <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                <button id="tab-generate" class="w-full text-center px-4 py-2 rounded-md text-sm font-semibold transition-colors bg-white text-purple-600 shadow-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generar Post
+                </button>
+                <button id="tab-history" class="w-full text-center px-4 py-2 rounded-md text-sm font-semibold transition-colors text-gray-500 hover:bg-gray-200">
+                    <i class="fa-solid fa-clock-rotate-left mr-1"></i> Ideas Previas
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenido de Generación (visible por default) -->
+        <div id="generate-content">
+            <form id="aiForm" class="p-6 space-y-6">
             <div>
                 <label for="instruction" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fa-solid fa-pen-nib mr-1 text-purple-600"></i> ¿De qué trata el post?
@@ -69,7 +82,13 @@
                 <span>Generar con IA</span>
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
             </button>
-        </form>
+            </form>
+        </div>
+
+        <!-- Contenido de Historial (oculto por default) -->
+        <div id="history-content" class="hidden p-6">
+            <p class="text-gray-600 text-center">Funcionalidad para consultar ideas previas estará disponible aquí.</p>
+        </div>
 
         <!-- Área de Resultado -->
         <div id="resultArea" class="hidden bg-gray-50 border-t border-gray-200 p-6">
