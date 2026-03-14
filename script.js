@@ -165,26 +165,39 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderFormattedResult(postData) {
         
         let slidesHtml = '';
-        if (postData.slides && Array.isArray(postData.slides)) {
-            slidesHtml = postData.slides.map((slide) => {
+        
+        // Validar si slides viene como string (común al consultar SQL -> JSON)
+        let slidesData = postData.slides;
+        if (typeof slidesData === 'string') {
+            try { slidesData = JSON.parse(slidesData); } catch (e) {}
+        }
+
+        if (slidesData && Array.isArray(slidesData)) {
+            slidesHtml = slidesData.map((slide) => {
                 
                 let actionElement = '';
                 let imagePreview = '';
 
+                // Validación robusta: evaluamos booleanos, strings "true", o la simple existencia del ID de Drive
+                const isGenerated = slide.imagen_generada === true || 
+                                    String(slide.imagen_generada).toLowerCase() === 'true' || 
+                                    (slide.drive_file_id != null && slide.drive_file_id !== '' && slide.drive_file_id !== 'null');
+
                 // Si la imagen ya fue generada, mostramos indicador, link y previsualización
-                if (slide.imagen_generada) {
+                if (isGenerated) {
+                    const driveUrl = (slide.file_url && slide.file_url !== 'null') ? slide.file_url : '#';
                     actionElement = `
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200 shadow-sm font-semibold flex items-center gap-1">
                                 <i class="fa-solid fa-check-circle"></i> Lista
                             </span>
-                            <a href="${slide.file_url}" target="_blank" title="Abrir en Drive" class="bg-white text-gray-500 hover:text-purple-600 border border-gray-200 hover:border-purple-300 py-1 px-2 rounded text-xs transition-colors flex items-center gap-1 shadow-sm">
+                            <a href="${driveUrl}" target="_blank" title="Abrir en Drive" class="bg-white text-gray-500 hover:text-purple-600 border border-gray-200 hover:border-purple-300 py-1 px-2 rounded text-xs transition-colors flex items-center gap-1 shadow-sm ${driveUrl === '#' ? 'hidden' : ''}">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver
                             </a>
                         </div>
                     `;
                     
-                    if (slide.drive_file_id) {
+                    if (slide.drive_file_id && slide.drive_file_id !== 'null') {
                         imagePreview = `
                             <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block">
                                 <img src="https://drive.google.com/uc?export=view&id=${slide.drive_file_id}" alt="Slide ${slide.numero}" class="w-full max-w-xs rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
