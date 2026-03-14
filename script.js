@@ -188,8 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isGenerated) {
                     const viewUrl = (slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : '#');
                     const downloadUrl = (slide.file_url_download && slide.file_url_download !== 'null') ? slide.file_url_download : '#';
-                    const thumbUrl = (slide.drive_file_id && slide.drive_file_id !== 'null')
-                        ? `https://drive.google.com/thumbnail?id=${slide.drive_file_id}&sz=w1200`
+                    const directImageUrl = (slide.drive_file_id && slide.drive_file_id !== 'null')
+                        ? `https://lh3.googleusercontent.com/d/${slide.drive_file_id}=w1200`
                         : null;
                     const directViewUrl = (slide.drive_file_id && slide.drive_file_id !== 'null')
                         ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}`
@@ -208,15 +208,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             </a>
                         </div>
                     `;
-                    // Para previsualizar en <img>, Drive suele funcionar mejor con thumbnail pública.
-                    // Si falla, probamos la URL directa por ID, luego descarga y al final la de vista y file_url.
-                    const imgSrc = thumbUrl
+                    // Para previsualizar en <img>, evitamos la URL de thumbnail porque a veces regresa una miniatura inútil.
+                    // Probamos primero URL directa de imagen, luego la vista por ID, después descarga y al final file_url.
+                    const imgSrc = directImageUrl
                         || directViewUrl
                         || ((slide.file_url_download && slide.file_url_download !== 'null')
                             ? slide.file_url_download
-                            : ((slide.file_url_view && slide.file_url_view !== 'null')
-                                ? slide.file_url_view
-                                : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : null)));
+                            : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : null));
 
                     if (imgSrc) {
                         imagePreview = `
@@ -225,17 +223,17 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <img
                                         src="${imgSrc}"
                                         alt="Slide ${slide.numero}"
-                                        class="w-full max-w-xs rounded object-contain"
+                                        class="block w-80 max-w-full h-auto rounded object-contain bg-gray-50"
                                         referrerpolicy="no-referrer"
                                         crossorigin="anonymous"
                                         onerror="(function(img){
-                                            const thumbUrl = '${(thumbUrl || '').replace(/'/g, "\\'")}';
+                                            const directImageUrl = '${(directImageUrl || '').replace(/'/g, "\\'")}';
                                             const directViewUrl = '${(directViewUrl || '').replace(/'/g, "\\'")}';
                                             const downloadUrl = '${(slide.file_url_download || '').replace(/'/g, "\\'")}';
                                             const viewUrl = '${(slide.file_url_view || '').replace(/'/g, "\\'")}';
                                             const fileUrl = '${(slide.file_url || '').replace(/'/g, "\\'")}';
                                             const current = img.dataset.fallbackStep || '0';
-
+                                            img.dataset.lastTried = img.src;
                                             if (current === '0') {
                                                 img.dataset.fallbackStep = '1';
                                                 if (directViewUrl && img.src !== directViewUrl) { img.src = directViewUrl; return; }
@@ -246,11 +244,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                             }
                                             if (current === '2') {
                                                 img.dataset.fallbackStep = '3';
-                                                if (viewUrl && img.src !== viewUrl) { img.src = viewUrl; return; }
+                                                if (fileUrl && img.src !== fileUrl) { img.src = fileUrl; return; }
                                             }
                                             if (current === '3') {
                                                 img.dataset.fallbackStep = '4';
-                                                if (fileUrl && img.src !== fileUrl) { img.src = fileUrl; return; }
+                                                if (viewUrl && img.src !== viewUrl) { img.src = viewUrl; return; }
                                             }
 
                                             img.style.display='none';
