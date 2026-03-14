@@ -243,8 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
         button.classList.add('opacity-75', 'cursor-not-allowed');
 
         const imageData = {
-            Flujo: "Imagene",
-            Action: "Generar",
+            Flujo: "imagen",
+            Action: "generar",
             id_post: idPost,
             numero_slide: parseInt(slideNumber),
             idea_visual: ideaVisual,
