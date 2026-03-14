@@ -209,12 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                     // Para previsualizar en <img>, Drive suele funcionar mejor con thumbnail pública.
-                    // Si falla, probamos la URL directa por ID, luego descarga y al final la de vista.
+                    // Si falla, probamos la URL directa por ID, luego descarga y al final la de vista y file_url.
                     const imgSrc = thumbUrl
                         || directViewUrl
                         || ((slide.file_url_download && slide.file_url_download !== 'null')
                             ? slide.file_url_download
-                            : ((slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : null));
+                            : ((slide.file_url_view && slide.file_url_view !== 'null')
+                                ? slide.file_url_view
+                                : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : null)));
 
                     if (imgSrc) {
                         imagePreview = `
@@ -231,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             const directViewUrl = '${(directViewUrl || '').replace(/'/g, "\\'")}';
                                             const downloadUrl = '${(slide.file_url_download || '').replace(/'/g, "\\'")}';
                                             const viewUrl = '${(slide.file_url_view || '').replace(/'/g, "\\'")}';
+                                            const fileUrl = '${(slide.file_url || '').replace(/'/g, "\\'")}';
                                             const current = img.dataset.fallbackStep || '0';
 
                                             if (current === '0') {
@@ -244,6 +247,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                             if (current === '2') {
                                                 img.dataset.fallbackStep = '3';
                                                 if (viewUrl && img.src !== viewUrl) { img.src = viewUrl; return; }
+                                            }
+                                            if (current === '3') {
+                                                img.dataset.fallbackStep = '4';
+                                                if (fileUrl && img.src !== fileUrl) { img.src = fileUrl; return; }
                                             }
 
                                             img.style.display='none';
