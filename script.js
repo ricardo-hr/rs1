@@ -284,6 +284,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function renderHistoryList(items) {
+        const getStatusBadge = (status) => {
+            switch (status?.toLowerCase()) {
+                case 'aprobado':
+                    return 'bg-green-100 text-green-800';
+                case 'rechazado':
+                    return 'bg-red-100 text-red-800';
+                case 'pendiente':
+                default:
+                    return 'bg-yellow-100 text-yellow-800';
+            }
+        };
+
+        const historyHtml = items.map(item => {
+            const formattedDate = new Date(item.fecha_propuesta).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            // Limpiar comillas dobles al inicio y final si existen
+            const cleanMessage = item.mensaje?.replace(/^"|"$/g, '');
+
+            return `
+                <div class="bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-id-post="${item.id_post}" title="Haz clic para ver detalles (próximamente)">
+                    <div class="flex justify-between items-start gap-4">
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm leading-tight">${item.hook || item.caption_corto}</p>
+                            <p class="text-xs text-gray-500 mt-2 font-mono">ID: ${item.id_post} | ${formattedDate}</p>
+                        </div>
+                        <span class="text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${getStatusBadge(item.estatus)}">${item.estatus || 'N/A'}</span>
+                    </div>
+                    <div class="mt-3 border-t border-gray-100 pt-2">
+                         <p class="text-xs text-gray-500 italic truncate"><strong>Instrucción:</strong> ${cleanMessage}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        historyContent.innerHTML = `<h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Historial de Ideas</h3>${historyHtml}`;
+    }
+
     async function fetchHistory() {
         console.log("Iniciando consulta de historial...");
         historyContent.innerHTML = '<div class="text-center p-6"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600"></i><p class="mt-2 text-sm text-gray-500">Cargando historial...</p></div>';
@@ -311,13 +353,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`Error del servidor (${response.status}): ${errorText}`);
             }
 
-            const data = await response.text();
-            
-            resultArea.classList.remove('hidden');
-            formattedResult.classList.add('hidden'); // Ocultamos la vista de post individual
-            outputJson.textContent = `✅ Respuesta del Historial:\n${JSON.stringify(JSON.parse(data), null, 2)}`;
-            historyContent.innerHTML = '<p class="text-gray-600 text-center">El historial se muestra en el área de resultados de abajo.</p>';
-            resultArea.scrollIntoView({ behavior: 'smooth' });
+            const historyData = await response.json();
+            if (Array.isArray(historyData) && historyData.length > 0) {
+                renderHistoryList(historyData);
+            } else {
+                historyContent.innerHTML = '<p class="text-gray-600 text-center p-6">No se encontraron ideas previas.</p>';
+            }
 
         } catch (error) {
             console.error('Error al cargar el historial:', error);
