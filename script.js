@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const payload = {
             Flujo: "idea",
-            Action: "consultad",
+            Action: "consulta",
             id_post: idPost
         };
 
