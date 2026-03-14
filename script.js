@@ -362,6 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
  
             const historyData = JSON.parse(responseText); // Intentar parsear el texto
+            console.log("Datos del historial recibidos y parseados:", historyData); // LOG para depuración
+
             if (Array.isArray(historyData) && historyData.length > 0) {
                 renderHistoryList(historyData);
             } else {
