@@ -284,15 +284,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function fetchHistory() {
+    async function fetchHistory() {
         console.log("Iniciando consulta de historial...");
+        historyContent.innerHTML = '<div class="text-center p-6"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600"></i><p class="mt-2 text-sm text-gray-500">Cargando historial...</p></div>';
+        resultArea.classList.add('hidden'); // Ocultar resultados previos
+
         const payload = {
             Flujo: "idea",
             Action: "historia"
         };
-        // Aquí iría la lógica de fetch al webhook con este payload
-        // Por ahora, solo mostramos una alerta y el payload en consola.
-        console.log("Payload para historial:", payload);
-        alert("Funcionalidad 'Ideas Previas' pendiente de implementación. El payload a enviar está en la consola.");
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const webhookUrl = urlParams.has('test') 
+            ? '/api/forward?test=true' 
+            : '/api/forward';
+
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error del servidor (${response.status}): ${errorText}`);
+            }
+
+            const data = await response.text();
+            
+            resultArea.classList.remove('hidden');
+            formattedResult.classList.add('hidden'); // Ocultamos la vista de post individual
+            outputJson.textContent = `✅ Respuesta del Historial:\n${JSON.stringify(JSON.parse(data), null, 2)}`;
+            historyContent.innerHTML = '<p class="text-gray-600 text-center">El historial se muestra en el área de resultados de abajo.</p>';
+            resultArea.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error('Error al cargar el historial:', error);
+            alert(`No se pudo cargar el historial: ${error.message}`);
+            historyContent.innerHTML = '<p class="text-red-500 text-center p-6">Error al cargar el historial. Intenta de nuevo.</p>';
+        }
     }
 });
