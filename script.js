@@ -27,8 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Crear objeto JSON
         const promptData = {
+            Flujo: "Prompt",
+            Action: "Genera",
             role: "system",
-            task: "generate_instagram_post",
+            task: "generate_instagram_post", // Se mantiene por compatibilidad si es necesario
             parameters: {
                 user_instruction: instruction,
                 context_data: context,
@@ -133,10 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
                     <div class="flex items-start justify-between mb-2">
                         <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo || 'Slide ' + slide.numero}</h4>
-                        <button class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-1.5 px-3 rounded text-xs transition-colors flex items-center gap-1 border border-indigo-200"
-                                onclick="alert('Lógica pendiente: Enviar petición para id_post ${postData.id_post}, slide ${slide.numero}')"
+                        <button class="request-image-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-1.5 px-3 rounded text-xs transition-colors flex items-center gap-1 border border-indigo-200"
                                 data-id-post="${postData.id_post}"
-                                data-slide="${slide.numero}">
+                                data-slide-number="${slide.numero}">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Solicitar Imagen
                         </button>
                     </div>
@@ -179,5 +180,71 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         formattedResult.classList.remove('hidden');
+    }
+
+    // --- Lógica para solicitar imágenes ---
+
+    // Usamos delegación de eventos para manejar los clics en los botones que se crean dinámicamente
+    formattedResult.addEventListener('click', function(e) {
+        const button = e.target.closest('.request-image-btn');
+        if (button && !button.disabled) {
+            requestImage(button);
+        }
+    });
+
+    async function requestImage(button) {
+        const idPost = button.dataset.idPost;
+        const slideNumber = button.dataset.slideNumber;
+
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+        button.classList.remove('hover:bg-indigo-200');
+        button.classList.add('opacity-75', 'cursor-not-allowed');
+
+        const imageData = {
+            Flujo: "Imagene",
+            Action: "Generar",
+            id_post: idPost,
+            numero_slide: parseInt(slideNumber)
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const webhookUrl = urlParams.has('test') 
+            ? '/api/forward?test=true' 
+            : '/api/forward';
+
+        try {
+            console.log("Solicitando imagen con payload:", imageData);
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(imageData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error del servidor (${response.status}): ${errorText}`);
+            }
+
+            // Suponemos que la respuesta contiene info de la imagen generada
+            const result = await response.json(); 
+            console.log('Respuesta de generación de imagen:', result);
+
+            // Cambiamos el estado del botón a "Generada"
+            button.innerHTML = '<i class="fa-solid fa-check-circle"></i> Generada';
+            button.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200', 'opacity-75');
+            button.classList.add('bg-green-100', 'text-green-800', 'border-green-200');
+            // El botón queda deshabilitado para no volver a generar
+            
+        } catch (error) {
+            console.error('Error solicitando la imagen:', error);
+            alert(`No se pudo generar la imagen: ${error.message}`);
+            // Restauramos el botón en caso de error
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+            button.classList.add('hover:bg-indigo-200');
+            button.classList.remove('opacity-75', 'cursor-not-allowed');
+        }
     }
 });
