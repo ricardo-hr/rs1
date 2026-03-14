@@ -178,30 +178,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 let actionElement = '';
                 let imagePreview = '';
 
-                // Validación robusta: evaluamos booleanos, strings "true", o la simple existencia del ID de Drive
+                // Validación robusta: evaluamos booleanos, strings "true", o la existencia de los nuevos campos de URL
                 const isGenerated = slide.imagen_generada === true || 
                                     String(slide.imagen_generada).toLowerCase() === 'true' || 
+                                    (slide.file_url_view != null && slide.file_url_view !== '' && slide.file_url_view !== 'null') ||
                                     (slide.drive_file_id != null && slide.drive_file_id !== '' && slide.drive_file_id !== 'null');
 
                 // Si la imagen ya fue generada, mostramos indicador, link y previsualización
                 if (isGenerated) {
-                    const driveUrl = (slide.file_url && slide.file_url !== 'null') ? slide.file_url : '#';
+                    const viewUrl = (slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : '#');
+                    const downloadUrl = (slide.file_url_download && slide.file_url_download !== 'null') ? slide.file_url_download : '#';
+                    
                     actionElement = `
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200 shadow-sm font-semibold flex items-center gap-1">
                                 <i class="fa-solid fa-check-circle"></i> Lista
                             </span>
-                            <a href="${driveUrl}" target="_blank" title="Abrir en Drive" class="bg-white text-gray-500 hover:text-purple-600 border border-gray-200 hover:border-purple-300 py-1 px-2 rounded text-xs transition-colors flex items-center gap-1 shadow-sm ${driveUrl === '#' ? 'hidden' : ''}">
+                            <a href="${viewUrl}" target="_blank" title="Ver Imagen" class="bg-white text-gray-500 hover:text-purple-600 border border-gray-200 hover:border-purple-300 py-1 px-2 rounded text-xs transition-colors flex items-center gap-1 shadow-sm ${viewUrl === '#' ? 'hidden' : ''}">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver
+                            </a>
+                            <a href="${downloadUrl}" target="_blank" title="Descargar Imagen" class="bg-white text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 py-1 px-2 rounded text-xs transition-colors flex items-center gap-1 shadow-sm ${downloadUrl === '#' ? 'hidden' : ''}">
+                                <i class="fa-solid fa-download"></i>
                             </a>
                         </div>
                     `;
                     
-                    if (slide.drive_file_id && slide.drive_file_id !== 'null') {
+                    // Preferimos usar file_url_view si existe, si no, intentamos con el ID de Drive como respaldo
+                    const imgSrc = (slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}`;
+
+                    if (imgSrc && imgSrc !== '#' && imgSrc !== 'https://drive.google.com/uc?export=view&id=null') {
                         imagePreview = `
                             <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block">
-                                <img src="https://drive.google.com/uc?export=view&id=${slide.drive_file_id}" alt="Slide ${slide.numero}" class="w-full max-w-xs rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
-                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible (revisa permisos en Drive).</p>
+                                <img src="${imgSrc}" alt="Slide ${slide.numero}" class="w-full max-w-xs rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible.</p>
                             </div>
                         `;
                     }
