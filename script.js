@@ -330,40 +330,57 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Iniciando consulta de historial...");
         historyContent.innerHTML = '<div class="text-center p-6"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600"></i><p class="mt-2 text-sm text-gray-500">Cargando historial...</p></div>';
         resultArea.classList.add('hidden'); // Ocultar resultados previos
-
+ 
         const payload = {
             Flujo: "idea",
             Action: "historia"
         };
-
+ 
         const urlParams = new URLSearchParams(window.location.search);
         const webhookUrl = urlParams.has('test') 
             ? '/api/forward?test=true' 
             : '/api/forward';
-
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // Añadir timeout de 60s
+ 
         try {
             const response = await fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                signal: controller.signal
             });
-
+ 
+            clearTimeout(timeoutId); // Respuesta recibida, limpiar timeout
+ 
+            const responseText = await response.text(); // Leer siempre como texto para más robustez
+ 
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Error del servidor (${response.status}): ${errorText}`);
+                // Si la respuesta no es OK, lanzar error con el cuerpo de la respuesta
+                throw new Error(`Error del servidor (${response.status}): ${responseText}`);
             }
-
-            const historyData = await response.json();
+ 
+            const historyData = JSON.parse(responseText); // Intentar parsear el texto
             if (Array.isArray(historyData) && historyData.length > 0) {
                 renderHistoryList(historyData);
             } else {
                 historyContent.innerHTML = '<p class="text-gray-600 text-center p-6">No se encontraron ideas previas.</p>';
             }
-
+ 
         } catch (error) {
+            clearTimeout(timeoutId); // Limpiar timeout también en caso de error
             console.error('Error al cargar el historial:', error);
-            alert(`No se pudo cargar el historial: ${error.message}`);
-            historyContent.innerHTML = '<p class="text-red-500 text-center p-6">Error al cargar el historial. Intenta de nuevo.</p>';
+            
+            let errorMessage = `No se pudo cargar el historial: ${error.message}`;
+            if (error.name === 'AbortError') {
+                errorMessage = 'La consulta del historial tardó demasiado (más de 60s) y fue cancelada.';
+            } else if (error instanceof SyntaxError) {
+                errorMessage = 'La respuesta del servidor no es un formato JSON válido.';
+            }
+ 
+            alert(errorMessage);
+            historyContent.innerHTML = `<p class="text-red-500 text-center p-6">${errorMessage} Revisa la consola para más detalles.</p>`;
         }
     }
 });
