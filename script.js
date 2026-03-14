@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isGenerated) {
                     const viewUrl = (slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : '#');
                     const downloadUrl = (slide.file_url_download && slide.file_url_download !== 'null') ? slide.file_url_download : '#';
-                    
+
                     actionElement = `
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200 shadow-sm font-semibold flex items-center gap-1">
@@ -202,15 +202,38 @@ document.addEventListener('DOMContentLoaded', () => {
                             </a>
                         </div>
                     `;
-                    
-                    // Para previsualizar en etiqueta <img>, usamos obligatoriamente el export=view con el ID
-                    const imgSrc = (slide.drive_file_id && slide.drive_file_id !== 'null') ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}` : null;
+                    // Para previsualizar en <img>, intentamos primero una URL directa de Drive por ID.
+                    // Si falla, hacemos fallback a la URL de descarga y luego a la de vista.
+                    const imgSrc = (slide.drive_file_id && slide.drive_file_id !== 'null')
+                        ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}`
+                        : ((slide.file_url_download && slide.file_url_download !== 'null')
+                            ? slide.file_url_download
+                            : ((slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : null));
 
                     if (imgSrc) {
                         imagePreview = `
                             <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block">
-                                <img src="${imgSrc}" alt="Slide ${slide.numero}" class="w-full max-w-xs rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
-                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible. Revisa permisos en Drive.</p>
+                                <img
+                                    src="${imgSrc}"
+                                    alt="Slide ${slide.numero}"
+                                    class="w-full max-w-xs rounded object-contain"
+                                    referrerpolicy="no-referrer"
+                                    crossorigin="anonymous"
+                                    onerror="(function(img){
+                                        const downloadUrl = '${(slide.file_url_download || '').replace(/'/g, "\\'")}';
+                                        const viewUrl = '${(slide.file_url_view || '').replace(/'/g, "\\'")}';
+                                        if (!img.dataset.fallbackStep) {
+                                            img.dataset.fallbackStep = '1';
+                                            if (downloadUrl) { img.src = downloadUrl; return; }
+                                        }
+                                        if (img.dataset.fallbackStep === '1') {
+                                            img.dataset.fallbackStep = '2';
+                                            if (viewUrl) { img.src = viewUrl; return; }
+                                        }
+                                        img.style.display='none';
+                                        if (img.nextElementSibling) img.nextElementSibling.classList.remove('hidden');
+                                    })(this);" />
+                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible. Revisa permisos en Drive o intenta abrir el link "Ver".</p>
                             </div>
                         `;
                     }
@@ -328,17 +351,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json(); 
             console.log('Respuesta de generación de imagen:', result);
 
-            // Cambiamos el estado del botón a "Generada"
+            // Tras generar la imagen, volvemos a consultar el post para traer la URL/ID real guardada en BD
             button.innerHTML = '<i class="fa-solid fa-check-circle"></i> Generada';
             button.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200', 'opacity-75');
             button.classList.add('bg-green-100', 'text-green-800', 'border-green-200');
-            // El botón queda deshabilitado para no volver a generar
+
+            // Refrescar detalles para que aparezcan la preview, links y estado actualizado del slide
+            await fetchPostDetails(idPost);
             
         } catch (error) {
             console.error('Error solicitando la imagen:', error);
+            button.disabled = false;
             alert(`No se pudo generar la imagen: ${error.message}`);
             // Restauramos el botón en caso de error
-            button.disabled = false;
             button.innerHTML = originalHtml;
             button.classList.add('hover:bg-indigo-200');
             button.classList.remove('opacity-75', 'cursor-not-allowed');
