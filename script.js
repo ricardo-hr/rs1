@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('aiForm');
     const resultArea = document.getElementById('resultArea');
     const outputJson = document.getElementById('outputJson');
+    const formattedResult = document.getElementById('formattedResult');
     const submitBtn = form.querySelector('button[type="submit"]');
 
     // Indicador visual de modo BETA / TEST
@@ -73,10 +74,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Formatear respuesta para mostrarla limpia
             let formattedResponse = data;
             try {
-                // Si devuelve JSON, lo formateamos bonito
-                formattedResponse = JSON.stringify(JSON.parse(data), null, 2);
+                const parsedData = JSON.parse(data);
+                formattedResponse = JSON.stringify(parsedData, null, 2);
+                
+                // Detectar si el JSON tiene la estructura de post de IA
+                if (Array.isArray(parsedData) && parsedData.length > 0 && parsedData[0].hook) {
+                    renderFormattedResult(parsedData);
+                } else {
+                    formattedResult.classList.add('hidden');
+                }
             } catch (e) {
                 // Si es texto plano, se queda igual
+                formattedResult.classList.add('hidden');
             }
 
             outputJson.textContent = `✅ Respuesta del Agente:\n${formattedResponse}\n\n================\n\n📤 Datos Enviados:\n${JSON.stringify(promptData, null, 2)}`;
@@ -93,4 +102,55 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.classList.remove('opacity-75');
         });
     });
+
+    // Función para renderizar el post bonito en la interfaz
+    function renderFormattedResult(parsedData) {
+        const postData = parsedData[0];
+        const imagesData = parsedData.slice(1); // El resto son imágenes
+        
+        let slidesHtml = '';
+        if (postData.slides && Array.isArray(postData.slides)) {
+            slidesHtml = postData.slides.map((slide, index) => {
+                const imgInfo = imagesData[index];
+                const imgSize = imgInfo ? imgInfo.fileSize : 'No generada';
+                
+                return `
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo}</h4>
+                        <span class="text-[10px] bg-purple-100 text-purple-800 px-2 py-1 rounded-full"><i class="fa-solid fa-image"></i> Archivo: ${imgSize}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">${slide.texto}</p>
+                    <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded border border-blue-100">
+                        <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${slide.prompt_visual}
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        formattedResult.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-3 flex items-center gap-2">
+                    <i class="fa-brands fa-instagram text-white text-xl"></i>
+                    <h3 class="text-white font-bold">Post Generado Listo</h3>
+                </div>
+                <div class="p-6">
+                    <div class="mb-4">
+                        <span class="text-xs font-bold text-purple-500 uppercase tracking-wide">Hook (Gancho)</span>
+                        <p class="text-gray-900 font-semibold text-lg mt-1">${postData.hook}</p>
+                    </div>
+                    <div class="mb-4">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Caption / Texto del Post</span>
+                        <p class="text-gray-700 text-sm mt-1 whitespace-pre-wrap">${postData.caption}</p>
+                        <p class="text-blue-500 text-sm mt-2 font-medium">${postData.hashtags.join(' ')}</p>
+                    </div>
+                    <hr class="my-5 border-gray-100">
+                    <h4 class="text-sm font-bold text-gray-800 mb-4"><i class="fa-solid fa-layer-group text-pink-500"></i> Diapositivas del Carrusel</h4>
+                    ${slidesHtml}
+                </div>
+            </div>
+        `;
+        formattedResult.classList.remove('hidden');
+    }
 });
