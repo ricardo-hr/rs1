@@ -224,12 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (match) driveId = match[1];
                     }
 
-                    // Determinar qué fuente usar para la imagen
+                    // IMPORTANTE: Nunca usar file_url o file_url_view para el src del <img> porque devuelven HTML (el visor de Drive), no la imagen cruda.
                     let imgSrc = null;
                     if (driveId) {
-                        imgSrc = `https://drive.google.com/uc?export=view&id=${driveId}`;
-                    } else if (slide.file_url_view && slide.file_url_view !== 'null') {
-                        imgSrc = slide.file_url_view;
+                        // Usamos lh3.googleusercontent.com ya que es el estándar actual para evadir bloqueos de cookies de terceros en Drive
+                        imgSrc = `https://lh3.googleusercontent.com/d/${driveId}=w1200`;
                     }
 
                     if (imgSrc) {
