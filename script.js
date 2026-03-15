@@ -191,11 +191,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 let actionElement = '';
                 let imagePreview = '';
 
-                // Validación robusta: evaluamos booleanos, strings "true", o la existencia de los nuevos campos de URL
+                // Validación a prueba de fallos: verificamos booleanos, y cualquier rastro de URL
                 const isGenerated = slide.imagen_generada === true || 
                                     String(slide.imagen_generada).toLowerCase() === 'true' || 
-                                    (slide.file_url_view != null && slide.file_url_view !== '' && slide.file_url_view !== 'null') ||
-                                    (slide.drive_file_id != null && slide.drive_file_id !== '' && slide.drive_file_id !== 'null');
+                                    (slide.file_url_view != null && String(slide.file_url_view).trim() !== '' && slide.file_url_view !== 'null') ||
+                                    (slide.drive_file_id != null && String(slide.drive_file_id).trim() !== '' && slide.drive_file_id !== 'null') ||
+                                    (slide.file_url != null && String(slide.file_url).trim() !== '' && slide.file_url !== 'null');
 
                 // Si la imagen ya fue generada, mostramos indicador, link y previsualización
                 if (isGenerated) {
@@ -216,14 +217,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                     
-                    // Para previsualizar en etiqueta <img>, usamos obligatoriamente el export=view con el ID
-                    const imgSrc = (slide.drive_file_id && slide.drive_file_id !== 'null') ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}` : null;
+                    // Extraer ID de Drive de forma robusta (incluso si el campo drive_file_id viene vacío pero sí tenemos file_url)
+                    let driveId = (slide.drive_file_id && slide.drive_file_id !== 'null') ? slide.drive_file_id.trim() : null;
+                    if (!driveId && slide.file_url && slide.file_url !== 'null') {
+                        const match = slide.file_url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                        if (match) driveId = match[1];
+                    }
+
+                    // Determinar qué fuente usar para la imagen
+                    let imgSrc = null;
+                    if (driveId) {
+                        imgSrc = `https://drive.google.com/uc?export=view&id=${driveId}`;
+                    } else if (slide.file_url_view && slide.file_url_view !== 'null') {
+                        imgSrc = slide.file_url_view;
+                    }
 
                     if (imgSrc) {
                         imagePreview = `
-                            <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block">
-                                <img src="${imgSrc}" alt="Slide ${slide.numero}" class="w-full max-w-xs rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
-                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible. Revisa permisos en Drive.</p>
+                            <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block w-full max-w-xs">
+                                <img src="${imgSrc}" alt="Slide ${slide.numero}" class="w-full rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+                                <div class="hidden text-xs text-red-500 mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-center gap-2">
+                                    <i class="fa-solid fa-image-slash text-lg"></i>
+                                    <span>La vista previa está bloqueada por permisos de Google Drive. Usa el botón <strong>"Ver"</strong> arriba.</span>
+                                </div>
                             </div>
                         `;
                     }
