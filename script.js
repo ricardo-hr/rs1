@@ -341,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function requestImage(button) {
         const idPost = button.dataset.idPost;
         const slideNumber = button.dataset.slideNumber;
+        const idSlide = button.dataset.idSlide;
         const ideaVisual = button.dataset.ideaVisual;
         const promptVisual = button.dataset.promptVisual;
 
@@ -355,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Action: "generar",
             id_post: idPost,
             numero_slide: parseInt(slideNumber),
+            id_slide: idSlide ? parseInt(idSlide) : null,
             idea_visual: ideaVisual,
             prompt_visual: promptVisual
         };
