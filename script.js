@@ -306,9 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function requestImage(button) {
         const idPost = button.dataset.idPost;
         const slideNumber = button.dataset.slideNumber;
-        const idSlide = button.dataset.idSlide;
-        const ideaVisual = button.dataset.ideaVisual;
-        const promptVisual = button.dataset.promptVisual;
 
         const originalHtml = button.innerHTML;
         button.disabled = true;
@@ -319,11 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageData = {
             Flujo: "imagen",
             Action: "generar",
-            id_post: idPost,
-            numero_slide: parseInt(slideNumber),
-            id_slide: idSlide ? parseInt(idSlide) : null,
-            idea_visual: ideaVisual,
-            prompt_visual: promptVisual
+            id_post: parseInt(idPost),
+            numero_slide: parseInt(slideNumber)
         };
 
         const urlParams = new URLSearchParams(window.location.search);
