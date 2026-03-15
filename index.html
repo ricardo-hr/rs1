@@ -132,6 +132,33 @@
         </div>
     </main>
 
+    <!-- Modal Simulación Instagram -->
+    <div id="igModal" class="fixed inset-0 z-50 hidden bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white w-full max-w-[375px] rounded-xl overflow-hidden shadow-2xl relative animate-fade-in-up">
+            <!-- Header IG -->
+            <div class="flex items-center justify-between p-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shadow-inner">AI</div>
+                    <span class="text-sm font-semibold text-gray-900">mi_marca_genial</span>
+                </div>
+                <button id="closeIgModal" class="text-gray-400 hover:text-gray-800 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <!-- Imagen IG -->
+            <div id="igModalImage" class="w-full aspect-square bg-gray-50 flex items-center justify-center overflow-hidden relative border-b border-gray-100">
+                <!-- La imagen se inyecta por JS -->
+            </div>
+            <!-- Footer IG -->
+            <div class="p-3 bg-white">
+                <div class="flex items-center gap-4 mb-2 text-2xl text-gray-800">
+                    <i class="fa-regular fa-heart hover:text-red-500 cursor-pointer transition-colors"></i>
+                    <i class="fa-regular fa-comment cursor-pointer hover:text-gray-500 transition-colors"></i>
+                    <i class="fa-regular fa-paper-plane cursor-pointer hover:text-gray-500 transition-colors"></i>
+                </div>
+                <p class="text-sm text-gray-800 line-clamp-3 leading-snug"><span class="font-bold mr-1">mi_marca_genial</span><span id="igModalCaption"></span></p>
+            </div>
+        </div>
+    </div>
+
     <!-- Lógica JavaScript -->
     <script src="script.js"></script>
 </body>

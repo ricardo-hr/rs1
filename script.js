@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyContent = document.getElementById('history-content');
     const submitBtn = form.querySelector('button[type="submit"]');
     const emptyState = document.getElementById('emptyState');
+    
+    let currentPostData = null; // Guardará el post actual para el simulador de IG
 
     // Indicador visual de modo BETA / TEST
     const globalParams = new URLSearchParams(window.location.search);
@@ -176,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para renderizar el post bonito en la interfaz
     function renderFormattedResult(postData) {
+        currentPostData = postData; // Actualizamos el post global
         
         let slidesHtml = '';
         
@@ -299,7 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-brands fa-instagram text-white text-xl"></i>
                         <h3 class="text-white font-bold">Post Propuesto (ID: ${postData.id_post || 'N/A'})</h3>
                     </div>
-                    <span class="bg-white/20 text-white text-xs px-2 py-1 rounded border border-white/30 capitalize">${postData.estatus || 'nuevo'}</span>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-simulate-ig" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-md border border-white/30 transition flex items-center gap-1.5 shadow-sm font-semibold">
+                            <i class="fa-solid fa-mobile-screen"></i> Simular
+                        </button>
+                        <span class="bg-white/20 text-white text-xs px-2 py-1 rounded border border-white/30 capitalize">${postData.estatus || 'nuevo'}</span>
+                    </div>
                 </div>
                 <div class="p-6">
                     <div class="mb-4">
@@ -328,6 +336,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = e.target.closest('.request-image-btn');
         if (button && !button.disabled) {
             requestImage(button);
+            return;
+        }
+
+        const btnSimulate = e.target.closest('#btn-simulate-ig');
+        if (btnSimulate) {
+            openIgSimulation();
         }
     });
 
@@ -376,6 +390,10 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.add('bg-green-100', 'text-green-800', 'border-green-200');
             // El botón queda deshabilitado para no volver a generar
             
+            // RECARGA AUTOMÁTICA DE LA VISTA
+            // Damos 1 segundo para que la BD consolide, y volvemos a consultar la idea para que cargue la imagen nueva.
+            setTimeout(() => fetchPostDetails(idPost), 1000);
+            
         } catch (error) {
             console.error('Error solicitando la imagen:', error);
             alert(`No se pudo generar la imagen: ${error.message}`);
@@ -386,6 +404,50 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.remove('opacity-75', 'cursor-not-allowed');
         }
     }
+
+    // --- Lógica del Simulador de Instagram ---
+    function openIgSimulation() {
+        if (!currentPostData) return;
+        const igModal = document.getElementById('igModal');
+        const igModalImage = document.getElementById('igModalImage');
+        const igModalCaption = document.getElementById('igModalCaption');
+        
+        // Colocar texto del post y hashtags
+        const hashtagsHtml = Array.isArray(currentPostData.hashtags) ? currentPostData.hashtags.join(' ') : (currentPostData.hashtags || '');
+        igModalCaption.innerHTML = `${currentPostData.caption || ''} <span class="text-blue-900">${hashtagsHtml}</span>`;
+        
+        // Buscar imágenes generadas (extraer ID de Drive)
+        let slidesData = currentPostData.slides;
+        if (typeof slidesData === 'string') { try { slidesData = JSON.parse(slidesData); } catch(e){} }
+        
+        let firstImageUrl = null;
+        let totalImages = 0;
+        
+        if (slidesData && Array.isArray(slidesData)) {
+            slidesData.forEach(slide => {
+                let driveId = (slide.drive_file_id && slide.drive_file_id !== 'null') ? slide.drive_file_id.trim() : null;
+                if (!driveId && slide.file_url && slide.file_url !== 'null') {
+                    const match = slide.file_url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                    if (match) driveId = match[1];
+                }
+                if (driveId) {
+                    totalImages++;
+                    if (!firstImageUrl) firstImageUrl = `https://lh3.googleusercontent.com/d/${driveId}=w800`;
+                }
+            });
+        }
+
+        if (firstImageUrl) {
+            igModalImage.innerHTML = `<img src="${firstImageUrl}" class="w-full h-full object-cover" /> ${totalImages > 1 ? `<div class="absolute top-3 right-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full border border-white/20 shadow-sm font-medium tracking-widest">1/${totalImages}</div>` : ''}`;
+        } else {
+            igModalImage.innerHTML = `<div class="p-6 text-center text-gray-400 flex flex-col items-center"><i class="fa-solid fa-image-slash text-4xl mb-3 opacity-50"></i><p class="text-sm font-medium">Aún no hay imágenes listas</p><p class="text-xs mt-1">Genera la primera slide para previsualizar</p></div>`;
+        }
+        igModal.classList.remove('hidden');
+    }
+
+    document.getElementById('closeIgModal')?.addEventListener('click', () => {
+        document.getElementById('igModal').classList.add('hidden');
+    });
 
     function renderHistoryList(items) {
         const getStatusBadge = (status) => {
