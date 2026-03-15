@@ -406,6 +406,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Lógica del Simulador de Instagram ---
+    let simulationImages = [];
+    let currentSimulationIndex = 0;
+
+    function renderSimulationImage() {
+        const igModalImage = document.getElementById('igModalImage');
+        if (simulationImages.length === 0) {
+            igModalImage.innerHTML = `<div class="p-6 text-center text-gray-400 flex flex-col items-center"><i class="fa-solid fa-image-slash text-4xl mb-3 opacity-50"></i><p class="text-sm font-medium">Aún no hay imágenes listas</p><p class="text-xs mt-1">Genera la primera slide para previsualizar</p></div>`;
+            return;
+        }
+
+        const imgUrl = simulationImages[currentSimulationIndex];
+        const total = simulationImages.length;
+
+        let navButtons = '';
+        if (total > 1) {
+            if (currentSimulationIndex > 0) {
+                navButtons += `<button id="ig-prev-btn" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-7 h-7 flex items-center justify-center rounded-full transition-colors shadow-md"><i class="fa-solid fa-chevron-left text-xs"></i></button>`;
+            }
+            if (currentSimulationIndex < total - 1) {
+                navButtons += `<button id="ig-next-btn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-7 h-7 flex items-center justify-center rounded-full transition-colors shadow-md"><i class="fa-solid fa-chevron-right text-xs"></i></button>`;
+            }
+        }
+
+        const counter = total > 1 ? `<div class="absolute top-3 right-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full border border-white/20 shadow-sm font-medium tracking-widest">${currentSimulationIndex + 1}/${total}</div>` : '';
+
+        igModalImage.innerHTML = `
+            <img src="${imgUrl}" class="w-full h-full object-cover" />
+            ${counter}
+            ${navButtons}
+        `;
+    }
+
     function openIgSimulation() {
         if (!currentPostData) return;
         const igModal = document.getElementById('igModal');
@@ -420,8 +452,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let slidesData = currentPostData.slides;
         if (typeof slidesData === 'string') { try { slidesData = JSON.parse(slidesData); } catch(e){} }
         
-        let firstImageUrl = null;
-        let totalImages = 0;
+        simulationImages = [];
+        currentSimulationIndex = 0;
         
         if (slidesData && Array.isArray(slidesData)) {
             slidesData.forEach(slide => {
@@ -431,22 +463,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (match) driveId = match[1];
                 }
                 if (driveId) {
-                    totalImages++;
-                    if (!firstImageUrl) firstImageUrl = `https://lh3.googleusercontent.com/d/${driveId}=w800`;
+                    simulationImages.push(`https://lh3.googleusercontent.com/d/${driveId}=w800`);
                 }
             });
         }
 
-        if (firstImageUrl) {
-            igModalImage.innerHTML = `<img src="${firstImageUrl}" class="w-full h-full object-cover" /> ${totalImages > 1 ? `<div class="absolute top-3 right-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full border border-white/20 shadow-sm font-medium tracking-widest">1/${totalImages}</div>` : ''}`;
-        } else {
-            igModalImage.innerHTML = `<div class="p-6 text-center text-gray-400 flex flex-col items-center"><i class="fa-solid fa-image-slash text-4xl mb-3 opacity-50"></i><p class="text-sm font-medium">Aún no hay imágenes listas</p><p class="text-xs mt-1">Genera la primera slide para previsualizar</p></div>`;
-        }
+        renderSimulationImage();
         igModal.classList.remove('hidden');
     }
 
     document.getElementById('closeIgModal')?.addEventListener('click', () => {
         document.getElementById('igModal').classList.add('hidden');
+    });
+
+    document.getElementById('igModalImage')?.addEventListener('click', (e) => {
+        if (e.target.closest('#ig-prev-btn')) {
+            currentSimulationIndex--;
+            renderSimulationImage();
+        } else if (e.target.closest('#ig-next-btn')) {
+            currentSimulationIndex++;
+            renderSimulationImage();
+        }
     });
 
     function renderHistoryList(items) {
