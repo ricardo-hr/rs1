@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyContent = document.getElementById('history-content');
     const submitBtn = form.querySelector('button[type="submit"]');
     const btnNewPost = document.getElementById('btn-new-post');
+    const emptyState = document.getElementById('emptyState');
 
     // Indicador visual de modo BETA / TEST
     const globalParams = new URLSearchParams(window.location.search);
@@ -39,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         generateContent.classList.remove('hidden');
         historyContent.classList.add('hidden');
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
+        if (emptyState) emptyState.classList.add('lg:flex');
     });
 
     tabHistory.addEventListener('click', () => {
@@ -54,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         historyContent.classList.remove('hidden');
         generateContent.classList.add('hidden');
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
+        if (emptyState) emptyState.classList.add('lg:flex');
         fetchHistory();
     });
 
@@ -128,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             // Mostrar éxito
             resultArea.classList.remove('hidden');
+            if (emptyState) emptyState.classList.remove('lg:flex');
             
             // Ocultar formulario en móvil para enfocar en el resultado, mantener en PC
             form.classList.add('hidden', 'lg:block');
@@ -449,22 +453,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const cleanMessage = item.mensaje?.replace(/^"|"$/g, '');
 
             return `
-                <div class="history-item bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-id-post="${item.id_post}" title="Haz clic para cargar los detalles de esta idea">
+                <div class="history-item bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer" data-id-post="${item.id_post}" title="Haz clic para cargar los detalles de esta idea">
                     <div class="flex justify-between items-start gap-4">
                         <div>
-                            <p class="font-semibold text-gray-800 text-sm leading-tight">${item.hook || item.caption_corto}</p>
+                            <p class="font-semibold text-gray-800 text-sm leading-tight line-clamp-2">${item.hook || item.caption_corto}</p>
                             <p class="text-xs text-gray-500 mt-2 font-mono">ID: ${item.id_post} | ${formattedDate}</p>
                         </div>
                         <span class="text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${getStatusBadge(item.estatus)}">${item.estatus || 'N/A'}</span>
                     </div>
                     <div class="mt-3 border-t border-gray-100 pt-2">
-                         <p class="text-xs text-gray-500 italic truncate"><strong>Instrucción:</strong> ${cleanMessage}</p>
+                         <p class="text-xs text-gray-500 italic line-clamp-1"><strong>Instrucción:</strong> ${cleanMessage}</p>
                     </div>
                 </div>
             `;
         }).join('');
 
-        historyContent.innerHTML = `<h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Historial de Ideas</h3>${historyHtml}`;
+        historyContent.innerHTML = `
+            <div id="history-list-container" class="w-full">
+                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Historial de Ideas</h3>
+                <div class="space-y-3 pb-8">
+                    ${historyHtml}
+                </div>
+            </div>
+            <div id="history-detail-mobile-back" class="hidden mb-4">
+                <button id="back-to-history" class="w-full bg-white border border-gray-200 text-purple-600 font-semibold py-2.5 px-4 rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Volver a la lista
+                </button>
+            </div>
+        `;
     }
 
     historyContent.addEventListener('click', (e) => {
@@ -472,20 +488,55 @@ document.addEventListener('DOMContentLoaded', () => {
         const backButton = e.target.closest('#back-to-history');
 
         if (historyCard) {
+            // Resaltar visualmente la tarjeta seleccionada
+            document.querySelectorAll('.history-item').forEach(card => {
+                card.classList.remove('ring-2', 'ring-purple-500', 'bg-purple-50');
+            });
+            historyCard.classList.add('ring-2', 'ring-purple-500', 'bg-purple-50');
+
+            // En móvil ocultamos la lista, en escritorio la mantenemos
+            const listContainer = document.getElementById('history-list-container');
+            const mobileBack = document.getElementById('history-detail-mobile-back');
+            if (listContainer) listContainer.classList.add('hidden', 'lg:block');
+            if (mobileBack) {
+                mobileBack.classList.remove('hidden');
+                mobileBack.classList.add('lg:hidden'); // Para que nunca salga en escritorio
+            }
+
             const idPost = historyCard.dataset.idPost;
             fetchPostDetails(idPost);
             return;
         }
 
         if (backButton) {
+            const listContainer = document.getElementById('history-list-container');
+            const mobileBack = document.getElementById('history-detail-mobile-back');
+            
+            if (listContainer) listContainer.classList.remove('hidden', 'lg:block');
+            if (mobileBack) {
+                mobileBack.classList.add('hidden');
+                mobileBack.classList.remove('lg:hidden');
+            }
+
             resultArea.classList.add('hidden'); // Ocultar el resultado al volver
-            fetchHistory();
+            if (emptyState) emptyState.classList.add('lg:flex');
         }
     });
 
     async function fetchPostDetails(idPost) {
         console.log(`Consultando detalles para el post ID: ${idPost}`);
-        historyContent.innerHTML = `<div class="text-center p-6"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600"></i><p class="mt-2 text-sm text-gray-500">Cargando idea ID: ${idPost}...</p></div>`;
+        
+        resultArea.classList.remove('hidden');
+        if (emptyState) emptyState.classList.remove('lg:flex');
+        
+        formattedResult.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-purple-600 mb-4"></i>
+                <p class="text-gray-600 font-medium">Cargando detalles de la idea ID: ${idPost}...</p>
+            </div>
+        `;
+        formattedResult.classList.remove('hidden');
+        outputJson.textContent = "Obteniendo datos...";
 
         const payload = {
             Flujo: "idea",
@@ -517,12 +568,6 @@ document.addEventListener('DOMContentLoaded', () => {
             postData = postData.post_json || postData;
 
             if (postData && (postData.hook || postData.id_post)) {
-                // No cambiamos de pestaña, mostramos el resultado en la pestaña actual.
-                historyContent.innerHTML = `
-                    <button id="back-to-history" class="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-purple-600 hover:text-purple-800 transition-colors">
-                        <i class="fa-solid fa-arrow-left"></i> Volver al historial
-                    </button>`;
-                resultArea.classList.remove('hidden');
                 renderFormattedResult(postData);
                 outputJson.textContent = `✅ Respuesta del Agente (Consulta ID: ${idPost}):\n${JSON.stringify(parsedData, null, 2)}`;
                 if (window.innerWidth < 1024) {
@@ -536,7 +581,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error al consultar detalles del post:', error);
             alert(`No se pudieron cargar los detalles: ${error.message}`);
-            fetchHistory(); // Vuelve a cargar la lista del historial en caso de error
+            resultArea.classList.add('hidden');
+            if (emptyState) emptyState.classList.add('lg:flex');
         }
     }
 
@@ -544,6 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Iniciando consulta de historial...");
         historyContent.innerHTML = '<div class="text-center p-6"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600"></i><p class="mt-2 text-sm text-gray-500">Cargando historial...</p></div>';
         resultArea.classList.add('hidden'); // Ocultar resultados previos
+        if (emptyState) emptyState.classList.add('lg:flex');
  
         const payload = {
             Flujo: "idea",
