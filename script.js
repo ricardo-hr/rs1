@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateContent = document.getElementById('generate-content');
     const historyContent = document.getElementById('history-content');
     const submitBtn = form.querySelector('button[type="submit"]');
+    const btnNewPost = document.getElementById('btn-new-post');
 
     // Indicador visual de modo BETA / TEST
     const globalParams = new URLSearchParams(window.location.search);
@@ -26,6 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tabGenerate.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
         tabGenerate.classList.remove('text-gray-500', 'hover:bg-gray-200');
         
+        // Restaurar estado del formulario y botones
+        form.classList.remove('hidden', 'lg:block');
+        if (btnNewPost) btnNewPost.classList.add('hidden');
+
         // Desactivar tab de historial
         tabHistory.classList.add('text-gray-500', 'hover:bg-gray-200');
         tabHistory.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
@@ -51,6 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
         fetchHistory();
     });
+
+    // Botón para nueva idea (solo visible en móvil tras generar)
+    if (btnNewPost) {
+        btnNewPost.addEventListener('click', () => {
+            tabGenerate.click();
+            form.reset(); // Opcional: limpiar el formulario para una nueva idea
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -115,6 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Mostrar éxito
             resultArea.classList.remove('hidden');
             
+            // Ocultar formulario en móvil para enfocar en el resultado, mantener en PC
+            form.classList.add('hidden', 'lg:block');
+            if (btnNewPost) btnNewPost.classList.remove('hidden');
+            
             // Formatear respuesta para mostrarla limpia
             let formattedResponse = data;
             try {
@@ -142,7 +160,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             outputJson.textContent = `✅ Respuesta del Agente:\n${formattedResponse}\n\n================\n\n📤 Datos Enviados:\n${JSON.stringify(promptData, null, 2)}`;
-            resultArea.scrollIntoView({ behavior: 'smooth' });
+            
+            if (window.innerWidth < 1024) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                resultArea.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         })
         .catch(error => {
             clearTimeout(timeoutId); // Limpiamos el temporizador si falla
@@ -502,7 +525,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultArea.classList.remove('hidden');
                 renderFormattedResult(postData);
                 outputJson.textContent = `✅ Respuesta del Agente (Consulta ID: ${idPost}):\n${JSON.stringify(parsedData, null, 2)}`;
-                resultArea.scrollIntoView({ behavior: 'smooth' });
+                if (window.innerWidth < 1024) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    resultArea.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             } else {
                 throw new Error("La respuesta de la consulta no tiene el formato de post esperado.");
             }

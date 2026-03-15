@@ -13,8 +13,11 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex items-center justify-center p-4">
 
-    <main class="w-full max-w-lg md:max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <!-- Contenedor responsive: 1 columna en móvil, 2 columnas (dashboard) en PC -->
+    <main class="w-full max-w-lg lg:max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 lg:flex lg:h-[90vh]">
         
+        <!-- Panel Izquierdo: Controles -->
+        <div class="lg:w-[400px] shrink-0 flex flex-col bg-white border-b lg:border-b-0 lg:border-r border-gray-100 lg:overflow-y-auto relative z-10">
         <!-- Encabezado -->
         <header class="bg-white p-6 border-b border-gray-100">
             <div class="flex items-center gap-3">
@@ -89,10 +92,16 @@
         <div id="history-content" class="hidden p-6">
             <p class="text-gray-600 text-center">Funcionalidad para consultar ideas previas estará disponible aquí.</p>
         </div>
+        </div> <!-- Fin de Panel Izquierdo -->
 
-        <!-- Área de Resultado -->
-        <div id="resultArea" class="hidden bg-gray-50 border-t border-gray-200 p-6">
-            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Resultado Simulado</h3>
+        <!-- Panel Derecho: Resultados -->
+        <div id="resultArea" class="hidden flex-1 bg-gray-50 p-6 lg:p-8 lg:overflow-y-auto relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Resultado</h3>
+                <button id="btn-new-post" class="lg:hidden px-4 py-2 bg-white border border-gray-200 text-purple-700 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm hidden flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Nueva Idea
+                </button>
+            </div>
             
             <!-- Contenedor para la vista formateada -->
             <div id="formattedResult" class="mb-6 hidden"></div>
