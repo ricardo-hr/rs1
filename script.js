@@ -9,8 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateContent = document.getElementById('generate-content');
     const historyContent = document.getElementById('history-content');
     const submitBtn = form.querySelector('button[type="submit"]');
-    const btnNewPost = document.getElementById('btn-new-post');
-    const emptyState = document.getElementById('emptyState');
 
     // Indicador visual de modo BETA / TEST
     const globalParams = new URLSearchParams(window.location.search);
@@ -28,10 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
         tabGenerate.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
         tabGenerate.classList.remove('text-gray-500', 'hover:bg-gray-200');
         
-        // Restaurar estado del formulario y botones
-        form.classList.remove('hidden', 'lg:block');
-        if (btnNewPost) btnNewPost.classList.add('hidden');
-
         // Desactivar tab de historial
         tabHistory.classList.add('text-gray-500', 'hover:bg-gray-200');
         tabHistory.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
@@ -40,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
         generateContent.classList.remove('hidden');
         historyContent.classList.add('hidden');
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
-        if (emptyState) emptyState.classList.add('lg:flex');
     });
 
     tabHistory.addEventListener('click', () => {
@@ -56,18 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         historyContent.classList.remove('hidden');
         generateContent.classList.add('hidden');
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
-        if (emptyState) emptyState.classList.add('lg:flex');
         fetchHistory();
     });
-
-    // Botón para nueva idea (solo visible en móvil tras generar)
-    if (btnNewPost) {
-        btnNewPost.addEventListener('click', () => {
-            tabGenerate.click();
-            form.reset(); // Opcional: limpiar el formulario para una nueva idea
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -131,11 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             // Mostrar éxito
             resultArea.classList.remove('hidden');
-            if (emptyState) emptyState.classList.remove('lg:flex');
-            
-            // Ocultar formulario en móvil para enfocar en el resultado, mantener en PC
-            form.classList.add('hidden', 'lg:block');
-            if (btnNewPost) btnNewPost.classList.remove('hidden');
             
             // Formatear respuesta para mostrarla limpia
             let formattedResponse = data;
@@ -164,12 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             outputJson.textContent = `✅ Respuesta del Agente:\n${formattedResponse}\n\n================\n\n📤 Datos Enviados:\n${JSON.stringify(promptData, null, 2)}`;
-            
-            if (window.innerWidth < 1024) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                resultArea.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            resultArea.scrollIntoView({ behavior: 'smooth' });
         })
         .catch(error => {
             clearTimeout(timeoutId); // Limpiamos el temporizador si falla
@@ -215,13 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isGenerated) {
                     const viewUrl = (slide.file_url_view && slide.file_url_view !== 'null') ? slide.file_url_view : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : '#');
                     const downloadUrl = (slide.file_url_download && slide.file_url_download !== 'null') ? slide.file_url_download : '#';
-                    const directImageUrl = (slide.drive_file_id && slide.drive_file_id !== 'null')
-                        ? `https://lh3.googleusercontent.com/d/${slide.drive_file_id}=w1200`
-                        : null;
-                    const directViewUrl = (slide.drive_file_id && slide.drive_file_id !== 'null')
-                        ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}`
-                        : null;
-
+                    
                     actionElement = `
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200 shadow-sm font-semibold flex items-center gap-1">
@@ -235,77 +202,34 @@ document.addEventListener('DOMContentLoaded', () => {
                             </a>
                         </div>
                     `;
-                    // Para previsualizar en <img>, evitamos la URL de thumbnail porque a veces regresa una miniatura inútil.
-                    // Probamos primero URL directa de imagen, luego la vista por ID, después descarga y al final file_url.
-                    const imgSrc = directImageUrl
-                        || directViewUrl
-                        || ((slide.file_url_download && slide.file_url_download !== 'null')
-                            ? slide.file_url_download
-                            : ((slide.file_url && slide.file_url !== 'null') ? slide.file_url : null));
+                    
+                    // Para previsualizar en etiqueta <img>, usamos obligatoriamente el export=view con el ID
+                    const imgSrc = (slide.drive_file_id && slide.drive_file_id !== 'null') ? `https://drive.google.com/uc?export=view&id=${slide.drive_file_id}` : null;
 
                     if (imgSrc) {
                         imagePreview = `
                             <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block">
-                                <a href="${viewUrl}" target="_blank" rel="noopener noreferrer" class="block">
-                                    <img
-                                        src="${imgSrc}"
-                                        alt="Slide ${slide.numero}"
-                                        class="block w-80 max-w-full h-auto rounded object-contain bg-gray-50"
-                                        referrerpolicy="no-referrer"
-                                        crossorigin="anonymous"
-                                        onerror="(function(img){
-                                            const directImageUrl = '${(directImageUrl || '').replace(/'/g, "\\'")}';
-                                            const directViewUrl = '${(directViewUrl || '').replace(/'/g, "\\'")}';
-                                            const downloadUrl = '${(slide.file_url_download || '').replace(/'/g, "\\'")}';
-                                            const viewUrl = '${(slide.file_url_view || '').replace(/'/g, "\\'")}';
-                                            const fileUrl = '${(slide.file_url || '').replace(/'/g, "\\'")}';
-                                            const current = img.dataset.fallbackStep || '0';
-                                            img.dataset.lastTried = img.src;
-                                            if (current === '0') {
-                                                img.dataset.fallbackStep = '1';
-                                                if (directViewUrl && img.src !== directViewUrl) { img.src = directViewUrl; return; }
-                                            }
-                                            if (current === '1') {
-                                                img.dataset.fallbackStep = '2';
-                                                if (downloadUrl && img.src !== downloadUrl) { img.src = downloadUrl; return; }
-                                            }
-                                            if (current === '2') {
-                                                img.dataset.fallbackStep = '3';
-                                                if (fileUrl && img.src !== fileUrl) { img.src = fileUrl; return; }
-                                            }
-                                            if (current === '3') {
-                                                img.dataset.fallbackStep = '4';
-                                                if (viewUrl && img.src !== viewUrl) { img.src = viewUrl; return; }
-                                            }
-
-                                            img.style.display='none';
-                                            if (img.closest('a')) img.closest('a').classList.add('hidden');
-                                            if (img.parentElement && img.parentElement.querySelector('.img-preview-fallback')) {
-                                                img.parentElement.querySelector('.img-preview-fallback').classList.remove('hidden');
-                                            }
-                                        })(this);" />
-                                </a>
-                                <div class="img-preview-fallback hidden text-xs text-red-400 mt-1 space-y-1">
-                                    <p><i class="fa-solid fa-image-slash"></i> Previsualización no disponible desde Drive en esta app.</p>
-                                    <a href="${viewUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 font-medium">
-                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir imagen
-                                    </a>
-                                </div>
+                                <img src="${imgSrc}" alt="Slide ${slide.numero}" class="w-full max-w-xs rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+                                <p class="hidden text-xs text-red-400 mt-1"><i class="fa-solid fa-image-slash"></i> Previsualización no disponible. Revisa permisos en Drive.</p>
                             </div>
                         `;
                     }
                 } else {
+                    const finalPrompt = slide.prompt_visual_final || slide.prompt_visual || '';
                     // Si no está generada, mostramos el botón para solicitarla
                     actionElement = `
                         <button class="request-image-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-1.5 px-3 rounded text-xs transition-colors flex items-center gap-1 border border-indigo-200"
                                 data-id-post="${postData.id_post}"
                                 data-slide-number="${slide.numero}"
+                                data-id-slide="${slide.id_slide || ''}"
                                 data-idea-visual="${(slide.idea_visual || '').replace(/"/g, '&quot;')}"
-                                data-prompt-visual="${(slide.prompt_visual || '').replace(/"/g, '&quot;')}">
+                                data-prompt-visual="${finalPrompt.replace(/"/g, '&quot;')}">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Solicitar Imagen
                         </button>
                     `;
                 }
+
+                const displayPrompt = slide.prompt_visual_final || slide.prompt_visual || slide.idea_visual || '';
 
                 return `
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
@@ -315,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <p class="text-sm text-gray-600 mb-3">${slide.texto || ''}</p>
                     <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded border border-blue-100">
-                        <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${slide.prompt_visual || slide.idea_visual || ''}
+                        <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${displayPrompt}
                     </div>
                     ${imagePreview}
                 </div>
@@ -326,6 +250,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const hashtagsHtml = Array.isArray(postData.hashtags) 
             ? postData.hashtags.join(' ') 
             : (postData.hashtags || '');
+
+        let visualGuideHtml = '';
+        if (postData.direccion_visual_general || postData.style_fingerprint || postData.direccion_visual_maestra) {
+            visualGuideHtml = `
+                <div class="mb-5 bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200 text-sm">
+                    <h4 class="font-bold text-gray-700 mb-2"><i class="fa-solid fa-palette text-pink-500"></i> Guía Visual del Post</h4>
+                    ${postData.direccion_visual_general ? `<p class="text-gray-600 mb-2"><strong>Dirección General:</strong> ${postData.direccion_visual_general}</p>` : ''}
+                    ${postData.direccion_visual_maestra ? `<p class="text-gray-600 mb-2"><strong>Maestra:</strong> ${postData.direccion_visual_maestra}</p>` : ''}
+                    ${postData.style_fingerprint ? `<p class="text-gray-600 mb-2"><strong>Fingerprint:</strong> <span class="font-mono text-xs bg-gray-200 px-1 rounded">${postData.style_fingerprint}</span></p>` : ''}
+                    ${postData.reglas_visuales_negativas ? `<p class="text-red-500/80 text-xs mt-2"><strong>Reglas Negativas:</strong> ${postData.reglas_visuales_negativas}</p>` : ''}
+                </div>
+            `;
+        }
 
         formattedResult.innerHTML = `
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -346,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="text-gray-700 text-sm mt-1 whitespace-pre-wrap">${postData.caption || ''}</p>
                         <p class="text-blue-500 text-sm mt-2 font-medium">${hashtagsHtml}</p>
                     </div>
+                    ${visualGuideHtml}
                     <hr class="my-5 border-gray-100">
                     <h4 class="text-sm font-bold text-gray-800 mb-4"><i class="fa-solid fa-layer-group text-pink-500"></i> Diapositivas del Carrusel</h4>
                     ${slidesHtml}
@@ -410,19 +348,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json(); 
             console.log('Respuesta de generación de imagen:', result);
 
-            // Tras generar la imagen, volvemos a consultar el post para traer la URL/ID real guardada en BD
+            // Cambiamos el estado del botón a "Generada"
             button.innerHTML = '<i class="fa-solid fa-check-circle"></i> Generada';
             button.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200', 'opacity-75');
             button.classList.add('bg-green-100', 'text-green-800', 'border-green-200');
-
-            // Refrescar detalles para que aparezcan la preview, links y estado actualizado del slide
-            await fetchPostDetails(idPost);
+            // El botón queda deshabilitado para no volver a generar
             
         } catch (error) {
             console.error('Error solicitando la imagen:', error);
-            button.disabled = false;
             alert(`No se pudo generar la imagen: ${error.message}`);
             // Restauramos el botón en caso de error
+            button.disabled = false;
             button.innerHTML = originalHtml;
             button.classList.add('hover:bg-indigo-200');
             button.classList.remove('opacity-75', 'cursor-not-allowed');
@@ -453,34 +389,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const cleanMessage = item.mensaje?.replace(/^"|"$/g, '');
 
             return `
-                <div class="history-item bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer" data-id-post="${item.id_post}" title="Haz clic para cargar los detalles de esta idea">
+                <div class="history-item bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer" data-id-post="${item.id_post}" title="Haz clic para cargar los detalles de esta idea">
                     <div class="flex justify-between items-start gap-4">
                         <div>
-                            <p class="font-semibold text-gray-800 text-sm leading-tight line-clamp-2">${item.hook || item.caption_corto}</p>
+                            <p class="font-semibold text-gray-800 text-sm leading-tight">${item.hook || item.caption_corto}</p>
                             <p class="text-xs text-gray-500 mt-2 font-mono">ID: ${item.id_post} | ${formattedDate}</p>
                         </div>
                         <span class="text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${getStatusBadge(item.estatus)}">${item.estatus || 'N/A'}</span>
                     </div>
                     <div class="mt-3 border-t border-gray-100 pt-2">
-                         <p class="text-xs text-gray-500 italic line-clamp-1"><strong>Instrucción:</strong> ${cleanMessage}</p>
+                         <p class="text-xs text-gray-500 italic truncate"><strong>Instrucción:</strong> ${cleanMessage}</p>
                     </div>
                 </div>
             `;
         }).join('');
 
-        historyContent.innerHTML = `
-            <div id="history-list-container" class="w-full">
-                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Historial de Ideas</h3>
-                <div class="space-y-3 pb-8">
-                    ${historyHtml}
-                </div>
-            </div>
-            <div id="history-detail-mobile-back" class="hidden mb-4">
-                <button id="back-to-history" class="w-full bg-white border border-gray-200 text-purple-600 font-semibold py-2.5 px-4 rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-left"></i> Volver a la lista
-                </button>
-            </div>
-        `;
+        historyContent.innerHTML = `<h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Historial de Ideas</h3>${historyHtml}`;
     }
 
     historyContent.addEventListener('click', (e) => {
@@ -488,55 +412,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const backButton = e.target.closest('#back-to-history');
 
         if (historyCard) {
-            // Resaltar visualmente la tarjeta seleccionada
-            document.querySelectorAll('.history-item').forEach(card => {
-                card.classList.remove('ring-2', 'ring-purple-500', 'bg-purple-50');
-            });
-            historyCard.classList.add('ring-2', 'ring-purple-500', 'bg-purple-50');
-
-            // En móvil ocultamos la lista, en escritorio la mantenemos
-            const listContainer = document.getElementById('history-list-container');
-            const mobileBack = document.getElementById('history-detail-mobile-back');
-            if (listContainer) listContainer.classList.add('hidden', 'lg:block');
-            if (mobileBack) {
-                mobileBack.classList.remove('hidden');
-                mobileBack.classList.add('lg:hidden'); // Para que nunca salga en escritorio
-            }
-
             const idPost = historyCard.dataset.idPost;
             fetchPostDetails(idPost);
             return;
         }
 
         if (backButton) {
-            const listContainer = document.getElementById('history-list-container');
-            const mobileBack = document.getElementById('history-detail-mobile-back');
-            
-            if (listContainer) listContainer.classList.remove('hidden', 'lg:block');
-            if (mobileBack) {
-                mobileBack.classList.add('hidden');
-                mobileBack.classList.remove('lg:hidden');
-            }
-
             resultArea.classList.add('hidden'); // Ocultar el resultado al volver
-            if (emptyState) emptyState.classList.add('lg:flex');
+            fetchHistory();
         }
     });
 
     async function fetchPostDetails(idPost) {
         console.log(`Consultando detalles para el post ID: ${idPost}`);
-        
-        resultArea.classList.remove('hidden');
-        if (emptyState) emptyState.classList.remove('lg:flex');
-        
-        formattedResult.innerHTML = `
-            <div class="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
-                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-purple-600 mb-4"></i>
-                <p class="text-gray-600 font-medium">Cargando detalles de la idea ID: ${idPost}...</p>
-            </div>
-        `;
-        formattedResult.classList.remove('hidden');
-        outputJson.textContent = "Obteniendo datos...";
+        historyContent.innerHTML = `<div class="text-center p-6"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600"></i><p class="mt-2 text-sm text-gray-500">Cargando idea ID: ${idPost}...</p></div>`;
 
         const payload = {
             Flujo: "idea",
@@ -568,21 +457,22 @@ document.addEventListener('DOMContentLoaded', () => {
             postData = postData.post_json || postData;
 
             if (postData && (postData.hook || postData.id_post)) {
+                // No cambiamos de pestaña, mostramos el resultado en la pestaña actual.
+                historyContent.innerHTML = `
+                    <button id="back-to-history" class="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-purple-600 hover:text-purple-800 transition-colors">
+                        <i class="fa-solid fa-arrow-left"></i> Volver al historial
+                    </button>`;
+                resultArea.classList.remove('hidden');
                 renderFormattedResult(postData);
                 outputJson.textContent = `✅ Respuesta del Agente (Consulta ID: ${idPost}):\n${JSON.stringify(parsedData, null, 2)}`;
-                if (window.innerWidth < 1024) {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                    resultArea.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+                resultArea.scrollIntoView({ behavior: 'smooth' });
             } else {
                 throw new Error("La respuesta de la consulta no tiene el formato de post esperado.");
             }
         } catch (error) {
             console.error('Error al consultar detalles del post:', error);
             alert(`No se pudieron cargar los detalles: ${error.message}`);
-            resultArea.classList.add('hidden');
-            if (emptyState) emptyState.classList.add('lg:flex');
+            fetchHistory(); // Vuelve a cargar la lista del historial en caso de error
         }
     }
 
@@ -590,7 +480,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Iniciando consulta de historial...");
         historyContent.innerHTML = '<div class="text-center p-6"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-600"></i><p class="mt-2 text-sm text-gray-500">Cargando historial...</p></div>';
         resultArea.classList.add('hidden'); // Ocultar resultados previos
-        if (emptyState) emptyState.classList.add('lg:flex');
  
         const payload = {
             Flujo: "idea",
