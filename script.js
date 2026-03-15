@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const imgUrl = simulationImages[currentSimulationIndex];
+        const currentSlide = simulationImages[currentSimulationIndex];
         const total = simulationImages.length;
 
         let navButtons = '';
@@ -431,8 +431,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const counter = total > 1 ? `<div class="absolute top-3 right-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full border border-white/20 shadow-sm font-medium tracking-widest">${currentSimulationIndex + 1}/${total}</div>` : '';
 
+        // Capa de texto sobre la imagen simulando el diseño del carrusel
+        const textOverlay = `
+            <div class="absolute inset-x-0 bottom-0 p-4 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent text-white flex flex-col justify-end">
+                <h4 class="font-bold text-sm mb-1 leading-tight drop-shadow-md">${currentSlide.titulo || ''}</h4>
+                <p class="text-xs text-gray-200 line-clamp-3 leading-snug drop-shadow-md">${currentSlide.texto || ''}</p>
+            </div>
+        `;
+
         igModalImage.innerHTML = `
-            <img src="${imgUrl}" class="w-full h-full object-cover" />
+            <img src="${currentSlide.url}" class="w-full h-full object-cover" />
+            ${textOverlay}
             ${counter}
             ${navButtons}
         `;
@@ -463,7 +472,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (match) driveId = match[1];
                 }
                 if (driveId) {
-                    simulationImages.push(`https://lh3.googleusercontent.com/d/${driveId}=w800`);
+                    simulationImages.push({
+                        url: `https://lh3.googleusercontent.com/d/${driveId}=w800`,
+                        titulo: slide.titulo,
+                        texto: slide.texto
+                    });
                 }
             });
         }
