@@ -1013,6 +1013,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     base64Data = jsonData[0].data;
                 } else if (jsonData.data) {
                     base64Data = jsonData.data;
+                } else if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].id && String(jsonData[0].id).startsWith('filesystem-v2')) {
+                    throw new Error("n8n devolvió los metadatos del archivo en lugar de la imagen real. En n8n, cambia la configuración del nodo 'Respond to Webhook' a 'Respond With: Binary'.");
                 } else {
                     throw new Error("La respuesta JSON no contiene la propiedad binaria 'data'.");
                 }
