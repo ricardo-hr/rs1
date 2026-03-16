@@ -6,14 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedResult = document.getElementById('formattedResult');
     const tabGenerate = document.getElementById('tab-generate');
     const tabHistory = document.getElementById('tab-history');
-    const tabCharacters = document.getElementById('tab-characters');
     const generateContent = document.getElementById('generate-content');
     const historyContent = document.getElementById('history-content');
-    const characterContent = document.getElementById('character-content');
     const submitBtn = form.querySelector('button[type="submit"]');
     const emptyState = document.getElementById('emptyState');
     const characterPreviewArea = document.getElementById('characterPreviewArea');
     
+    // Elementos de los Grandes Módulos
+    const navModulePosts = document.getElementById('nav-module-posts');
+    const navModuleChars = document.getElementById('nav-module-chars');
+    const modulePostsLeft = document.getElementById('module-posts-left');
+    const moduleCharsLeft = document.getElementById('module-chars-left');
+
     let currentPostData = null; // Guardará el post actual para el simulador de IG
 
     // Indicador visual de modo BETA / TEST
@@ -26,25 +30,66 @@ document.addEventListener('DOMContentLoaded', () => {
         title.appendChild(badge);
     }
 
-    // --- Lógica de Pestañas (Tabs) ---
+    // --- Lógica de Navegación Global (Módulos Principales) ---
+    navModulePosts.addEventListener('click', () => {
+        // Estilos Botones Módulo
+        navModulePosts.classList.add('bg-white', 'text-gray-900', 'shadow-sm', 'border', 'border-gray-200');
+        navModulePosts.classList.remove('text-gray-500', 'hover:bg-gray-200');
+        navModuleChars.classList.add('text-gray-500', 'hover:bg-gray-200');
+        navModuleChars.classList.remove('bg-white', 'text-gray-900', 'shadow-sm', 'border', 'border-gray-200');
+
+        // Mostrar Panel Izquierdo correcto
+        modulePostsLeft.classList.remove('hidden');
+        moduleCharsLeft.classList.add('hidden');
+
+        // Mostrar Panel Derecho correcto
+        characterPreviewArea.classList.add('hidden');
+        characterPreviewArea.classList.remove('lg:flex');
+        
+        // Disparar click en la pestaña activa interna para restaurar el panel derecho
+        if (tabGenerate.classList.contains('text-purple-600')) {
+            tabGenerate.click();
+        } else {
+            tabHistory.click();
+        }
+    });
+
+    navModuleChars.addEventListener('click', () => {
+        // Estilos Botones Módulo
+        navModuleChars.classList.add('bg-white', 'text-gray-900', 'shadow-sm', 'border', 'border-gray-200');
+        navModuleChars.classList.remove('text-gray-500', 'hover:bg-gray-200');
+        navModulePosts.classList.add('text-gray-500', 'hover:bg-gray-200');
+        navModulePosts.classList.remove('bg-white', 'text-gray-900', 'shadow-sm', 'border', 'border-gray-200');
+
+        // Mostrar Panel Izquierdo correcto
+        moduleCharsLeft.classList.remove('hidden');
+        modulePostsLeft.classList.add('hidden');
+
+        // Mostrar Panel Derecho correcto (Forzar vista de personajes)
+        resultArea.classList.add('hidden');
+        if (emptyState) {
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('lg:flex');
+        }
+        characterPreviewArea.classList.remove('hidden');
+        characterPreviewArea.classList.add('lg:flex');
+        updateCharacterPreview(); // Iniciar UI del personaje
+    });
+
+    // --- Lógica de Pestañas Internas (Solo aplican al Módulo de Producción) ---
     tabGenerate.addEventListener('click', () => {
         // Activar tab de generar
-        tabGenerate.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
-        tabGenerate.classList.remove('text-gray-500', 'hover:bg-gray-200');
+        tabGenerate.classList.add('text-purple-600', 'border-purple-600');
+        tabGenerate.classList.remove('text-gray-400', 'border-transparent', 'hover:text-gray-600');
         
-        tabCharacters.classList.add('text-gray-500', 'hover:bg-gray-200');
-        tabCharacters.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
-
         // Desactivar tab de historial
-        tabHistory.classList.add('text-gray-500', 'hover:bg-gray-200');
-        tabHistory.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+        tabHistory.classList.add('text-gray-400', 'border-transparent', 'hover:text-gray-600');
+        tabHistory.classList.remove('text-purple-600', 'border-purple-600');
 
         // Mostrar/Ocultar contenido
         generateContent.classList.remove('hidden');
         historyContent.classList.add('hidden');
-        characterContent.classList.add('hidden');
-        characterPreviewArea.classList.add('hidden');
-        characterPreviewArea.classList.remove('lg:flex'); // Corrección: Forzar ocultamiento en PC
+        
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
         if (emptyState) {
             emptyState.classList.remove('hidden');
@@ -54,22 +99,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tabHistory.addEventListener('click', () => {
         // Activar tab de historial
-        tabHistory.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
-        tabHistory.classList.remove('text-gray-500', 'hover:bg-gray-200');
-        
-        tabCharacters.classList.add('text-gray-500', 'hover:bg-gray-200');
-        tabCharacters.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+        tabHistory.classList.add('text-purple-600', 'border-purple-600');
+        tabHistory.classList.remove('text-gray-400', 'border-transparent', 'hover:text-gray-600');
 
         // Desactivar tab de generar
-        tabGenerate.classList.add('text-gray-500', 'hover:bg-gray-200');
-        tabGenerate.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+        tabGenerate.classList.add('text-gray-400', 'border-transparent', 'hover:text-gray-600');
+        tabGenerate.classList.remove('text-purple-600', 'border-purple-600');
 
         // Mostrar/Ocultar contenido
         historyContent.classList.remove('hidden');
         generateContent.classList.add('hidden');
-        characterContent.classList.add('hidden');
-        characterPreviewArea.classList.add('hidden');
-        characterPreviewArea.classList.remove('lg:flex'); // Corrección: Forzar ocultamiento en PC
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
         if (emptyState) {
             emptyState.classList.remove('hidden');
