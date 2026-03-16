@@ -189,7 +189,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (slidesData && Array.isArray(slidesData)) {
-            slidesHtml = slidesData.map((slide) => {
+            let tabsHtml = '<div class="flex space-x-2 bg-gray-100 p-1.5 rounded-xl overflow-x-auto mb-4">';
+            let panelsHtml = '<div>';
+
+            slidesData.forEach((slide, index) => {
                 
                 let actionElement = '';
                 let imagePreview = '';
@@ -262,20 +265,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const displayPrompt = slide.prompt_visual_final || slide.prompt_visual || slide.idea_visual || '';
 
-                return `
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
-                    <div class="flex items-start justify-between mb-2">
-                        <h4 class="font-bold text-gray-800 text-sm"><span class="text-purple-600">${slide.numero}.</span> ${slide.titulo || 'Slide ' + slide.numero}</h4>
-                        ${actionElement}
+                // --- Lógica de Pestañas y Paneles ---
+                const isActive = index === 0;
+                
+                // Construir Pestaña
+                const activeTabClass = 'bg-white text-purple-600 shadow-sm';
+                const inactiveTabClass = 'text-gray-500 hover:bg-gray-200 hover:text-gray-700';
+                const tabClass = `slide-tab-btn shrink-0 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${isActive ? activeTabClass : inactiveTabClass}`;
+                
+                tabsHtml += `<button class="${tabClass}" data-index="${index}">Slide ${slide.numero}</button>`;
+                
+                // Construir Panel
+                const panelClass = isActive ? 'slide-panel block' : 'slide-panel hidden';
+                panelsHtml += `
+                <div class="${panelClass}" data-panel-index="${index}">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <h4 class="font-bold text-gray-800 text-base"><span class="text-purple-600 mr-1">${slide.numero}.</span> ${slide.titulo || 'Slide ' + slide.numero}</h4>
+                            ${actionElement}
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">${slide.texto || ''}</p>
+                        <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg border border-blue-100 mb-3">
+                            <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${displayPrompt}
+                        </div>
+                        ${imagePreview}
                     </div>
-                    <p class="text-sm text-gray-600 mb-3">${slide.texto || ''}</p>
-                    <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded border border-blue-100">
-                        <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${displayPrompt}
-                    </div>
-                    ${imagePreview}
-                </div>
-                `;
-            }).join('');
+                </div>`;
+            });
+            
+            tabsHtml += '</div>';
+            panelsHtml += '</div>';
+            slidesHtml = tabsHtml + panelsHtml;
         }
 
         const hashtagsHtml = Array.isArray(postData.hashtags) 
@@ -342,6 +362,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnSimulate = e.target.closest('#btn-simulate-ig');
         if (btnSimulate) {
             openIgSimulation();
+        }
+
+        const tabBtn = e.target.closest('.slide-tab-btn');
+        if (tabBtn) {
+            const index = tabBtn.dataset.index;
+            
+            // Actualizar diseño de botones
+            formattedResult.querySelectorAll('.slide-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+                btn.classList.add('text-gray-500', 'hover:bg-gray-200', 'hover:text-gray-700');
+            });
+            tabBtn.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
+            tabBtn.classList.remove('text-gray-500', 'hover:bg-gray-200', 'hover:text-gray-700');
+            
+            // Actualizar visibilidad de paneles
+            formattedResult.querySelectorAll('.slide-panel').forEach(panel => {
+                if (panel.dataset.panelIndex === index) {
+                    panel.classList.remove('hidden');
+                    panel.classList.add('block');
+                } else {
+                    panel.classList.remove('block');
+                    panel.classList.add('hidden');
+                }
+            });
         }
     });
 
