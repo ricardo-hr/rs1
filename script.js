@@ -1001,14 +1001,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`Error del servidor (${response.status}): ${errorText}`);
             }
 
-            // Procesar el binario devuelto por el Webhook
-            const blob = await response.blob();
-            const imgUrl = URL.createObjectURL(blob); // Convertir blob a URL visible localmente
+            // Procesamiento inteligente: Soporta tanto binario puro como JSON con base64 (típico de n8n)
+            const contentType = response.headers.get('content-type') || '';
+            let finalImgUrl = '';
+
+            if (contentType.includes('application/json')) {
+                const jsonData = await response.json();
+                let base64Data = '';
+                // Buscar la propiedad 'data' ya sea en un objeto directo o dentro de un arreglo
+                if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].data) {
+                    base64Data = jsonData[0].data;
+                } else if (jsonData.data) {
+                    base64Data = jsonData.data;
+                } else {
+                    throw new Error("La respuesta JSON no contiene la propiedad binaria 'data'.");
+                }
+                finalImgUrl = base64Data.startsWith('data:') ? base64Data : `data:image/png;base64,${base64Data}`;
+            } else {
+                // Es un binario puro directamente (ej. image/png, image/jpeg)
+                const blob = await response.blob();
+                finalImgUrl = URL.createObjectURL(blob);
+            }
             
             const previewContainer = document.getElementById('generated-preview-container');
             const previewImg = document.getElementById('generated-preview-img');
             
-            previewImg.src = imgUrl;
+            previewImg.src = finalImgUrl;
             previewContainer.classList.remove('hidden');
         } catch (error) {
             console.error('Error al previsualizar:', error);
