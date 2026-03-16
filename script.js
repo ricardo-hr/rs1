@@ -865,6 +865,30 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCharacterPreview();
     });
 
+    // --- Lógica del Modal Editor de Prompt ---
+    const promptModal = document.getElementById('promptModal');
+    const modalPromptTextarea = document.getElementById('modal-prompt-textarea');
+    
+    document.getElementById('btn-expand-prompt')?.addEventListener('click', () => {
+        modalPromptTextarea.value = document.getElementById('char-prompt-base').value;
+        promptModal.classList.remove('hidden');
+        modalPromptTextarea.focus();
+    });
+
+    const closePromptEditor = () => promptModal.classList.add('hidden');
+    
+    document.getElementById('closePromptModal')?.addEventListener('click', closePromptEditor);
+    document.getElementById('cancelPromptModal')?.addEventListener('click', closePromptEditor);
+
+    document.getElementById('applyPromptModal')?.addEventListener('click', () => {
+        const mainPrompt = document.getElementById('char-prompt-base');
+        mainPrompt.value = modalPromptTextarea.value;
+        isPromptManuallyEdited = true; // Congelar autogeneración para respetar este texto
+        updateCharacterPreview(); // Actualizar JSON y UI
+        closePromptEditor();
+    });
+    // ----------------------------------------
+
     function updateCharacterPreview() {
         // Leer valores
         const name = document.getElementById('char-name').value.trim() || 'Nuevo Personaje';
