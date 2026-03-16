@@ -850,9 +850,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Lógica del Creador de Personajes ---
-    const charInputs = ['char-name', 'char-type', 'char-image', 'char-desc', 'char-traits', 'char-clothing', 'char-accessories'];
+    const charInputs = ['char-name', 'char-type', 'char-image', 'char-desc', 'char-traits', 'char-clothing', 'char-accessories', 'char-palette', 'char-rules', 'char-prompt-base'];
+    let isPromptManuallyEdited = false;
+
     charInputs.forEach(id => {
-        document.getElementById(id)?.addEventListener('input', updateCharacterPreview);
+        document.getElementById(id)?.addEventListener('input', (e) => {
+            if (e.target.id === 'char-prompt-base') isPromptManuallyEdited = true;
+            updateCharacterPreview();
+        });
+    });
+
+    document.getElementById('btn-sync-prompt')?.addEventListener('click', () => {
+        isPromptManuallyEdited = false;
+        updateCharacterPreview();
     });
 
     function updateCharacterPreview() {
@@ -864,6 +874,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const traits = document.getElementById('char-traits').value.trim();
         const clothing = document.getElementById('char-clothing').value.trim();
         const accessories = document.getElementById('char-accessories').value.trim();
+        const palette = document.getElementById('char-palette').value.trim();
+        const rules = document.getElementById('char-rules').value.trim();
 
         // Actualizar UI básica
         document.getElementById('prev-char-name').textContent = name;
@@ -891,9 +903,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (traits) promptParts.push(`with ${traits}`);
         if (clothing) promptParts.push(`wearing ${clothing}`);
         if (accessories) promptParts.push(`with ${accessories}`);
+        if (palette) promptParts.push(`color palette: ${palette}`);
 
-        const finalPrompt = promptParts.length > 1 ? promptParts.join(', ') : 'Esperando datos para construir el motor del personaje...';
-        document.getElementById('prev-char-prompt').textContent = finalPrompt;
+        const autoPrompt = promptParts.length > 1 ? promptParts.join(', ') : 'Esperando datos para construir el motor del personaje...';
+        
+        const promptInput = document.getElementById('char-prompt-base');
+        if (!isPromptManuallyEdited) {
+            promptInput.value = autoPrompt === 'Esperando datos para construir el motor del personaje...' ? '' : autoPrompt;
+        }
+
+        const finalPromptBase = promptInput.value.trim() || autoPrompt;
+        document.getElementById('prev-char-prompt').textContent = finalPromptBase;
 
         // Calcular Consistencia (Termómetro)
         let score = 0;
@@ -921,17 +941,27 @@ document.addEventListener('DOMContentLoaded', () => {
             healthText.className = 'text-[10px] font-bold text-green-600';
         }
 
+        // Extraer File ID si viene un enlace de Drive
+        let fileId = null;
+        if (imgUrl) {
+            const match = imgUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || imgUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (match) fileId = match[1];
+        }
+
         // Construir JSON Blueprint
         const blueprint = {
             clave_personaje: name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
             nombre_personaje: name === 'Nuevo Personaje' ? '' : name,
             tipo_personaje: type,
-            referencia_imagen_url: imgUrl || null,
-            descripcion_fisica_base: desc,
-            rasgos_faciales_fijos: traits,
+            descripcion_base: desc,
+            rasgos_fijos: traits,
             vestimenta_base: clothing,
             accesorios_fijos: accessories,
-            prompt_personaje_maestro: finalPrompt !== 'Esperando datos para construir el motor del personaje...' ? finalPrompt : ''
+            paleta_personaje: palette,
+            reglas_consistencia: rules,
+            prompt_personaje_base: promptInput.value.trim(),
+            referencia_imagen_url: imgUrl || null,
+            referencia_imagen_file_id: fileId
         };
 
         document.getElementById('prev-char-json').textContent = JSON.stringify(blueprint, null, 2);
