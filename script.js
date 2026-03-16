@@ -6,10 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedResult = document.getElementById('formattedResult');
     const tabGenerate = document.getElementById('tab-generate');
     const tabHistory = document.getElementById('tab-history');
+    const tabCharacters = document.getElementById('tab-characters');
     const generateContent = document.getElementById('generate-content');
     const historyContent = document.getElementById('history-content');
+    const characterContent = document.getElementById('character-content');
     const submitBtn = form.querySelector('button[type="submit"]');
     const emptyState = document.getElementById('emptyState');
+    const characterPreviewArea = document.getElementById('characterPreviewArea');
     
     let currentPostData = null; // Guardará el post actual para el simulador de IG
 
@@ -29,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tabGenerate.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
         tabGenerate.classList.remove('text-gray-500', 'hover:bg-gray-200');
         
+        tabCharacters.classList.add('text-gray-500', 'hover:bg-gray-200');
+        tabCharacters.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+
         // Desactivar tab de historial
         tabHistory.classList.add('text-gray-500', 'hover:bg-gray-200');
         tabHistory.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
@@ -36,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mostrar/Ocultar contenido
         generateContent.classList.remove('hidden');
         historyContent.classList.add('hidden');
+        characterContent.classList.add('hidden');
+        characterPreviewArea.classList.add('hidden');
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
         if (emptyState) {
             emptyState.classList.remove('hidden');
@@ -48,6 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tabHistory.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
         tabHistory.classList.remove('text-gray-500', 'hover:bg-gray-200');
         
+        tabCharacters.classList.add('text-gray-500', 'hover:bg-gray-200');
+        tabCharacters.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+
         // Desactivar tab de generar
         tabGenerate.classList.add('text-gray-500', 'hover:bg-gray-200');
         tabGenerate.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
@@ -55,6 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mostrar/Ocultar contenido
         historyContent.classList.remove('hidden');
         generateContent.classList.add('hidden');
+        characterContent.classList.add('hidden');
+        characterPreviewArea.classList.add('hidden');
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
         if (emptyState) {
             emptyState.classList.remove('hidden');
@@ -796,4 +809,98 @@ document.addEventListener('DOMContentLoaded', () => {
             historyContent.innerHTML = `<p class="text-red-500 text-center p-6">${errorMessage} Revisa la consola para más detalles.</p>`;
         }
     }
+
+    // --- Lógica del Creador de Personajes ---
+    const charInputs = ['char-name', 'char-type', 'char-image', 'char-desc', 'char-traits', 'char-clothing', 'char-accessories'];
+    charInputs.forEach(id => {
+        document.getElementById(id)?.addEventListener('input', updateCharacterPreview);
+    });
+
+    function updateCharacterPreview() {
+        // Leer valores
+        const name = document.getElementById('char-name').value.trim() || 'Nuevo Personaje';
+        const type = document.getElementById('char-type').value;
+        const imgUrl = document.getElementById('char-image').value.trim();
+        const desc = document.getElementById('char-desc').value.trim();
+        const traits = document.getElementById('char-traits').value.trim();
+        const clothing = document.getElementById('char-clothing').value.trim();
+        const accessories = document.getElementById('char-accessories').value.trim();
+
+        // Actualizar UI básica
+        document.getElementById('prev-char-name').textContent = name;
+        document.getElementById('prev-char-type').textContent = type;
+
+        // Manejo de Foto
+        const imgEl = document.getElementById('prev-char-img');
+        const iconEl = document.getElementById('prev-char-icon');
+        if (imgUrl && imgUrl.startsWith('http')) {
+            imgEl.src = imgUrl;
+            imgEl.classList.remove('hidden');
+            iconEl.classList.add('hidden');
+        } else {
+            imgEl.classList.add('hidden');
+            iconEl.classList.remove('hidden');
+        }
+
+        // Construir Prompt Maestro
+        let promptParts = [];
+        if (type === 'Humano') promptParts.push('character sheet of a person');
+        if (type === 'Mascota') promptParts.push('character sheet of an animal');
+        if (type === 'Avatar') promptParts.push('3D mascot character design');
+        
+        if (desc) promptParts.push(desc);
+        if (traits) promptParts.push(`with ${traits}`);
+        if (clothing) promptParts.push(`wearing ${clothing}`);
+        if (accessories) promptParts.push(`with ${accessories}`);
+
+        const finalPrompt = promptParts.length > 1 ? promptParts.join(', ') : 'Esperando datos para construir el motor del personaje...';
+        document.getElementById('prev-char-prompt').textContent = finalPrompt;
+
+        // Calcular Consistencia (Termómetro)
+        let score = 0;
+        if (name !== 'Nuevo Personaje') score += 10;
+        if (desc.length > 15) score += 30;
+        if (traits.length > 5) score += 15;
+        if (clothing.length > 5) score += 15;
+        if (imgUrl) score += 30;
+
+        const healthBar = document.getElementById('prev-char-health-bar');
+        const healthText = document.getElementById('prev-char-health-text');
+        
+        healthBar.style.width = `${Math.max(10, score)}%`;
+        if (score < 40) {
+            healthBar.className = 'bg-red-500 h-full transition-all duration-500';
+            healthText.textContent = 'Baja (Requiere más detalles)';
+            healthText.className = 'text-[10px] font-bold text-red-500';
+        } else if (score < 80) {
+            healthBar.className = 'bg-yellow-500 h-full transition-all duration-500';
+            healthText.textContent = 'Media (Aceptable)';
+            healthText.className = 'text-[10px] font-bold text-yellow-600';
+        } else {
+            healthBar.className = 'bg-green-500 h-full transition-all duration-500';
+            healthText.textContent = 'Alta (Excelente)';
+            healthText.className = 'text-[10px] font-bold text-green-600';
+        }
+
+        // Construir JSON Blueprint
+        const blueprint = {
+            clave_personaje: name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+            nombre_personaje: name === 'Nuevo Personaje' ? '' : name,
+            tipo_personaje: type,
+            referencia_imagen_url: imgUrl || null,
+            descripcion_fisica_base: desc,
+            rasgos_faciales_fijos: traits,
+            vestimenta_base: clothing,
+            accesorios_fijos: accessories,
+            prompt_personaje_maestro: finalPrompt !== 'Esperando datos para construir el motor del personaje...' ? finalPrompt : ''
+        };
+
+        document.getElementById('prev-char-json').textContent = JSON.stringify(blueprint, null, 2);
+    }
+
+    document.getElementById('btn-save-character')?.addEventListener('click', () => {
+        const bpStr = document.getElementById('prev-char-json').textContent;
+        console.log("Payload a guardar:", JSON.parse(bpStr));
+        alert("✅ Personaje listo para guardar. Revisa la consola para ver el Blueprint generado.");
+    });
 });
