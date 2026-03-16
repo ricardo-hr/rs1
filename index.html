@@ -14,10 +14,10 @@
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex items-center justify-center p-4">
 
     <!-- Contenedor responsive: 1 columna en móvil, 2 columnas (dashboard) en PC -->
-    <main class="w-full max-w-lg lg:max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 lg:flex lg:h-[90vh]">
+    <main class="w-full max-w-lg lg:max-w-[95vw] xl:max-w-[1400px] bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 lg:flex lg:h-[90vh]">
         
         <!-- Panel Izquierdo: Controles -->
-        <div class="lg:w-[400px] shrink-0 flex flex-col bg-white border-b lg:border-b-0 lg:border-r border-gray-100 lg:overflow-y-auto relative z-10">
+        <div class="lg:w-[400px] xl:w-[450px] shrink-0 flex flex-col bg-white border-b lg:border-b-0 lg:border-r border-gray-100 lg:overflow-y-auto relative z-10">
         <!-- Encabezado -->
         <header class="bg-white p-6 border-b border-gray-100">
             <div class="flex items-center justify-between mb-4">
@@ -123,7 +123,7 @@
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre del Personaje *</label>
                             <input type="text" id="char-name" placeholder="Ej: Ana Emprendedora" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-purple-500 outline-none" required>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 mb-1">Tipo *</label>
                                 <select id="char-type" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
@@ -133,7 +133,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-700 mb-1">URL Imagen de Referencia</label>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Imagen Ref. (URL)</label>
                                 <input type="url" id="char-image" placeholder="https://..." class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
                             </div>
                         </div>
@@ -218,9 +218,9 @@
         <div id="characterPreviewArea" class="hidden flex-1 bg-gray-100 p-6 lg:p-8 lg:overflow-y-auto relative">
             <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-5">Ficha Técnica en Tiempo Real</h3>
             
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row mb-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col lg:flex-row mb-6">
                 <!-- Perfil -->
-                <div class="bg-gray-50 w-full md:w-2/5 border-b md:border-b-0 md:border-r border-gray-200 p-6 flex flex-col items-center text-center">
+                <div class="bg-gray-50 w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 p-6 flex flex-col items-center text-center">
                     <div id="prev-char-img-container" class="w-24 h-24 rounded-full bg-white border-4 border-white shadow-md overflow-hidden mb-3 flex items-center justify-center">
                         <i id="prev-char-icon" class="fa-solid fa-user-astronaut text-4xl text-gray-300"></i>
                         <img id="prev-char-img" src="" class="hidden w-full h-full object-cover">
@@ -241,7 +241,7 @@
                 </div>
                 
                 <!-- Datos -->
-                <div class="w-full md:w-3/5 p-6 flex flex-col justify-center">
+                <div class="w-full lg:w-2/3 p-6 flex flex-col justify-center">
                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2"><i class="fa-solid fa-terminal text-blue-400 mr-1"></i> Prompt Base</h4>
                     <div id="prev-char-prompt" class="bg-blue-50/50 text-blue-900 text-sm p-4 rounded-xl border border-blue-100 font-mono leading-relaxed mb-4">
                         Esperando datos para construir el motor del personaje...
