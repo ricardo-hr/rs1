@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         historyContent.classList.add('hidden');
         characterContent.classList.add('hidden');
         characterPreviewArea.classList.add('hidden');
+        characterPreviewArea.classList.remove('lg:flex'); // Corrección: Forzar ocultamiento en PC
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
         if (emptyState) {
             emptyState.classList.remove('hidden');
@@ -68,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         generateContent.classList.add('hidden');
         characterContent.classList.add('hidden');
         characterPreviewArea.classList.add('hidden');
+        characterPreviewArea.classList.remove('lg:flex'); // Corrección: Forzar ocultamiento en PC
         resultArea.classList.add('hidden'); // Ocultar resultados al cambiar de tab
         if (emptyState) {
             emptyState.classList.remove('hidden');
