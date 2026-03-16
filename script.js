@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Mostrar Panel Derecho correcto
         characterPreviewArea.classList.add('hidden');
-        characterPreviewArea.classList.remove('lg:flex');
         
         // Disparar click en la pestaña activa interna para restaurar el panel derecho
         if (tabGenerate.classList.contains('text-purple-600')) {
@@ -72,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
             emptyState.classList.remove('lg:flex');
         }
         characterPreviewArea.classList.remove('hidden');
-        characterPreviewArea.classList.add('lg:flex');
         updateCharacterPreview(); // Iniciar UI del personaje
     });
 
