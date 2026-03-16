@@ -889,6 +889,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // ----------------------------------------
 
+    // --- Lógica del Normalizador de Prompt ---
+    document.getElementById('btn-normalize-prompt')?.addEventListener('click', async () => {
+        const promptInput = document.getElementById('char-prompt-base');
+        const currentPrompt = promptInput.value.trim();
+
+        if (!currentPrompt) return;
+
+        const btnNormalize = document.getElementById('btn-normalize-prompt');
+        const originalHtml = btnNormalize.innerHTML;
+        btnNormalize.disabled = true;
+        btnNormalize.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+        btnNormalize.classList.add('opacity-50', 'cursor-not-allowed');
+
+        const payload = {
+            Flujo: "personaje",
+            Action: "normalizar_prompt",
+            prompt_personaje_base: currentPrompt
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const webhookUrl = urlParams.has('test') ? '/api/forward?test=true' : '/api/forward';
+
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error(`Error del servidor (${response.status})`);
+            const data = await response.json();
+            
+            // Desempaquetar si viene en array o post_json
+            let resultData = Array.isArray(data) && data.length > 0 ? data[0] : data;
+            if (resultData.post_json) resultData = resultData.post_json;
+
+            // Asignar los campos mapeados a los inputs
+            if (resultData.nombre_personaje) document.getElementById('char-name').value = resultData.nombre_personaje;
+            if (resultData.tipo_personaje) document.getElementById('char-type').value = resultData.tipo_personaje;
+            if (resultData.descripcion_base) document.getElementById('char-desc').value = resultData.descripcion_base;
+            if (resultData.rasgos_fijos) document.getElementById('char-traits').value = resultData.rasgos_fijos;
+            if (resultData.vestimenta_base) document.getElementById('char-clothing').value = resultData.vestimenta_base;
+            if (resultData.accesorios_fijos) document.getElementById('char-accessories').value = resultData.accesorios_fijos;
+            if (resultData.paleta_personaje) document.getElementById('char-palette').value = resultData.paleta_personaje;
+            if (resultData.reglas_consistencia) document.getElementById('char-rules').value = resultData.reglas_consistencia;
+
+            // Reseteamos bandera para que el prompt limpio se regenere con los nuevos datos
+            isPromptManuallyEdited = false;
+            updateCharacterPreview();
+        } catch (error) {
+            console.error('Error al normalizar:', error);
+            alert(`Error al normalizar: ${error.message}`);
+        } finally {
+            btnNormalize.disabled = false;
+            btnNormalize.innerHTML = originalHtml;
+            btnNormalize.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    });
+
     function updateCharacterPreview() {
         // Leer valores
         const name = document.getElementById('char-name').value.trim() || 'Nuevo Personaje';
@@ -900,6 +959,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const accessories = document.getElementById('char-accessories').value.trim();
         const palette = document.getElementById('char-palette').value.trim();
         const rules = document.getElementById('char-rules').value.trim();
+
+        // Mostrar/ocultar botón Normalizar
+        const btnNormalize = document.getElementById('btn-normalize-prompt');
+        if (btnNormalize) {
+            isPromptManuallyEdited 
+                ? btnNormalize.classList.remove('hidden') 
+                : btnNormalize.classList.add('hidden');
+        }
 
         // Actualizar UI básica
         document.getElementById('prev-char-name').textContent = name;
