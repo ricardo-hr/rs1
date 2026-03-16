@@ -944,13 +944,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Asignar los campos mapeados a los inputs
             if (resultData.nombre_personaje) document.getElementById('char-name').value = resultData.nombre_personaje;
-            if (resultData.tipo_personaje) document.getElementById('char-type').value = resultData.tipo_personaje;
-            if (resultData.descripcion_base) document.getElementById('char-desc').value = resultData.descripcion_base;
-            if (resultData.rasgos_fijos) document.getElementById('char-traits').value = resultData.rasgos_fijos;
+            
+            if (resultData.tipo_personaje) {
+                const charTypeSelect = document.getElementById('char-type');
+                // Verificar si la opción ya existe
+                const optionExists = Array.from(charTypeSelect.options).some(opt => opt.value === resultData.tipo_personaje);
+                if (!optionExists) {
+                    // Si no existe, la creamos y la agregamos al dropdown
+                    const newOption = document.createElement('option');
+                    newOption.value = resultData.tipo_personaje;
+                    newOption.textContent = `✨ ${resultData.tipo_personaje}`;
+                    charTypeSelect.appendChild(newOption);
+                }
+                charTypeSelect.value = resultData.tipo_personaje;
+            }
+            
+            // Soporte robusto para nombres antiguos o nuevos del prompt de IA
+            if (resultData.descripcion_base || resultData.descripcion_fisica_base) document.getElementById('char-desc').value = resultData.descripcion_base || resultData.descripcion_fisica_base;
+            if (resultData.rasgos_fijos || resultData.rasgos_faciales_fijos) document.getElementById('char-traits').value = resultData.rasgos_fijos || resultData.rasgos_faciales_fijos;
+            
             if (resultData.vestimenta_base) document.getElementById('char-clothing').value = resultData.vestimenta_base;
             if (resultData.accesorios_fijos) document.getElementById('char-accessories').value = resultData.accesorios_fijos;
             if (resultData.paleta_personaje) document.getElementById('char-palette').value = resultData.paleta_personaje;
             if (resultData.reglas_consistencia) document.getElementById('char-rules').value = resultData.reglas_consistencia;
+            
+            if (resultData.prompt_personaje_base) document.getElementById('char-prompt-base').value = resultData.prompt_personaje_base;
 
             // Reseteamos bandera para que el prompt limpio se regenere con los nuevos datos
             isPromptManuallyEdited = false;
