@@ -937,9 +937,56 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prev-char-json').textContent = JSON.stringify(blueprint, null, 2);
     }
 
-    document.getElementById('btn-save-character')?.addEventListener('click', () => {
+    document.getElementById('btn-preview-character')?.addEventListener('click', async () => {
+        const btnPreview = document.getElementById('btn-preview-character');
         const bpStr = document.getElementById('prev-char-json').textContent;
-        console.log("Payload a guardar:", JSON.parse(bpStr));
-        alert("✅ Personaje listo para guardar. Revisa la consola para ver el Blueprint generado.");
+        const blueprint = JSON.parse(bpStr);
+        
+        const payload = {
+            Flujo: "personaje",
+            Action: "preview",
+            ...blueprint
+        };
+
+        const originalHtml = btnPreview.innerHTML;
+        btnPreview.disabled = true;
+        btnPreview.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
+        btnPreview.classList.add('opacity-75', 'cursor-not-allowed');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const webhookUrl = urlParams.has('test') 
+            ? '/api/forward?test=true' 
+            : '/api/forward';
+
+        try {
+            console.log("Enviando a preview:", payload);
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error del servidor (${response.status}): ${errorText}`);
+            }
+
+            // Procesar el binario devuelto por el Webhook
+            const blob = await response.blob();
+            const imgUrl = URL.createObjectURL(blob); // Convertir blob a URL visible localmente
+            
+            const previewContainer = document.getElementById('generated-preview-container');
+            const previewImg = document.getElementById('generated-preview-img');
+            
+            previewImg.src = imgUrl;
+            previewContainer.classList.remove('hidden');
+        } catch (error) {
+            console.error('Error al previsualizar:', error);
+            alert(`No se pudo previsualizar: ${error.message}`);
+        } finally {
+            btnPreview.disabled = false;
+            btnPreview.innerHTML = originalHtml;
+            btnPreview.classList.remove('opacity-75', 'cursor-not-allowed');
+        }
     });
 });

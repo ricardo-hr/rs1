@@ -35,14 +35,20 @@ export default async function handler(req, res) {
             body: JSON.stringify(req.body)
         });
 
-        // Devolver la respuesta del webhook al frontend
-        const data = await response.text();
-        
-        if (!response.ok) {
-            console.error(`Webhook Error (${response.status}):`, data);
+        // Leer la respuesta como ArrayBuffer para no corromper datos binarios (imágenes)
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const contentType = response.headers.get('content-type');
+        if (contentType) {
+            res.setHeader('Content-Type', contentType);
         }
 
-        res.status(response.status).send(data);
+        if (!response.ok) {
+            console.error(`Webhook Error (${response.status}):`, buffer.toString('utf-8'));
+        }
+
+        res.status(response.status).send(buffer);
 
     } catch (error) {
         console.error('Proxy Error:', error);
