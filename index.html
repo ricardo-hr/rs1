@@ -186,6 +186,7 @@ No expliques nada fuera del JSON.</textarea>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre del Personaje *</label>
                             <input type="text" id="char-name" placeholder="Ej: Ana Emprendedora" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-purple-500 outline-none" required>
+                            <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ nombre_personaje</p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -195,10 +196,12 @@ No expliques nada fuera del JSON.</textarea>
                                     <option value="Mascota">🐶 Mascota/Animal</option>
                                     <option value="Avatar">🤖 Avatar 3D</option>
                                 </select>
+                                <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ tipo_personaje</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 mb-1">Imagen Ref. (URL)</label>
                                 <input type="url" id="char-image" placeholder="https://..." class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ referencia_imagen_url</p>
                             </div>
                         </div>
                     </div>
@@ -211,10 +214,12 @@ No expliques nada fuera del JSON.</textarea>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Descripción Base *</label>
                             <textarea id="char-desc" rows="2" placeholder="Ej: Mujer latina, 30 años, complexión delgada..." class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" required></textarea>
+                            <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ descripcion_base</p>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Rasgos Fijos (Cabello, rostro, marcas)</label>
                             <input type="text" id="char-traits" placeholder="Ej: Cabello rizado oscuro corto, pecas" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ rasgos_fijos</p>
                         </div>
                     </div>
                 </div>
@@ -227,15 +232,18 @@ No expliques nada fuera del JSON.</textarea>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 mb-1">Vestimenta Base</label>
                                 <input type="text" id="char-clothing" placeholder="Ej: Chaqueta de mezclilla..." class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-pink-500 outline-none">
+                                <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ vestimenta_base</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 mb-1">Paleta de Colores</label>
                                 <input type="text" id="char-palette" placeholder="Ej: Tonos pastel, verde..." class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-pink-500 outline-none">
+                                <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ paleta_personaje</p>
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Accesorios Constantes</label>
                             <input type="text" id="char-accessories" placeholder="Ej: Gafas de pasta roja, reloj inteligente" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-pink-500 outline-none">
+                            <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ accesorios_fijos</p>
                         </div>
                     </div>
                 </div>
@@ -247,6 +255,7 @@ No expliques nada fuera del JSON.</textarea>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Reglas de Consistencia (Reglas Negativas)</label>
                             <textarea id="char-rules" rows="2" placeholder="Ej: No usar sombreros, evitar fondos oscuros..." class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-green-500 outline-none resize-none"></textarea>
+                            <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ reglas_consistencia</p>
                         </div>
                         <div>
                             <label class="flex justify-between text-xs font-semibold text-gray-700 mb-1">
@@ -264,6 +273,7 @@ No expliques nada fuera del JSON.</textarea>
                                 </div>
                             </label>
                             <textarea id="char-prompt-base" rows="6" placeholder="El prompt final se construirá aquí..." class="w-full px-3 py-2 rounded-lg border border-green-300 bg-green-50/50 text-green-900 font-mono text-xs focus:ring-2 focus:ring-green-500 outline-none resize-y"></textarea>
+                            <p class="text-[9px] text-gray-400 mt-1 font-mono">↳ prompt_personaje_base</p>
                         </div>
                     </div>
                 </div>
