@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (imgSrc) {
                         imagePreview = `
-                            <div class="mt-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block w-full max-w-xs">
+                            <div class="mb-4 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block w-full max-w-xs">
                                 <img src="${imgSrc}" alt="Slide ${slide.numero}" class="w-full rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
                                 <div class="hidden text-xs text-red-500 mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-center gap-2">
                                     <i class="fa-solid fa-image-slash text-lg"></i>
@@ -285,10 +285,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${actionElement}
                         </div>
                         <p class="text-sm text-gray-600 mb-4">${slide.texto || ''}</p>
-                        <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg border border-blue-100 mb-3">
+                        ${imagePreview}
+                        <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg border border-blue-100 mb-1">
                             <strong><i class="fa-solid fa-paintbrush"></i> Prompt Visual:</strong> ${displayPrompt}
                         </div>
-                        ${imagePreview}
                     </div>
                 </div>`;
             });
