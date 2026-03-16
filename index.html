@@ -115,6 +115,67 @@
         <div id="module-chars-left" class="hidden">
             <form id="characterForm" class="p-6 space-y-6">
                 <p class="text-xs text-gray-500 mb-2">Define una identidad visual consistente para reutilizarla en tus posts.</p>
+                
+                <!-- Tip de Ayuda con IA -->
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 shadow-sm">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex gap-2">
+                            <i class="fa-solid fa-lightbulb text-indigo-500 mt-0.5"></i>
+                            <div>
+                                <h4 class="text-xs font-bold text-indigo-900">¿No sabes cómo empezar?</h4>
+                                <p class="text-[10px] text-indigo-700 mt-1 leading-snug pr-2">Copia estas instrucciones, sube la foto de tu personaje a ChatGPT o Claude, y pega su respuesta en la opción "Normalizar".</p>
+                            </div>
+                        </div>
+                        <button type="button" id="btn-copy-ai-prompt" class="shrink-0 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-100 px-2 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow-sm">
+                            <i class="fa-regular fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                    <textarea id="ai-helper-prompt" readonly class="w-full h-24 text-[9px] font-mono bg-white/80 border border-indigo-100 text-gray-600 p-2.5 rounded-lg resize-y outline-none focus:ring-1 focus:ring-indigo-300">Voy a subir una imagen de referencia de un personaje.
+
+Quiero que analices visualmente esa imagen y construyas una ficha estructurada del personaje para poder reutilizarlo después en generación de imágenes con consistencia.
+
+Importante:
+- No copies marcas, personajes protegidos ni logotipos exactos si la imagen contiene propiedad intelectual.
+- Si detectas elementos que podrían ser protegidos, descríbelos de forma funcional y original, sin reproducirlos de manera literal.
+- Quiero una reinterpretación útil, consistente y reusable del personaje.
+- No quiero solo una descripción libre: necesito una salida estructurada para poblar un formulario.
+
+Devuelve SOLO JSON válido con esta estructura exacta:
+
+{
+  "clave_personaje": "",
+  "nombre_personaje": "",
+  "tipo_personaje": "",
+  "descripcion_fisica_base": "",
+  "rasgos_faciales_fijos": "",
+  "vestimenta_base": "",
+  "accesorios_fijos": "",
+  "paleta_personaje": "",
+  "reglas_consistencia": "",
+  "prompt_personaje_base": "",
+  "estilo_visual_preview": "",
+  "tipo_preview": "",
+  "usa_referencia_imagen": true,
+  "referencia_imagen_url": null,
+  "notas_parseo": []
+}
+
+Criterios:
+- "tipo_personaje": clasifícalo claramente, por ejemplo: Humano, Mascota, Avatar, Personaje de marca, Cartoon infantil, Mascota de marca estilo cartoon, etc.
+- "descripcion_fisica_base": resume cuerpo, edad aparente, tipo de piel, silueta, energía y apariencia general.
+- "rasgos_faciales_fijos": resume ojos, sonrisa, cabello, barba, expresión, etc.
+- "vestimenta_base": resume la ropa principal.
+- "accesorios_fijos": resume accesorios o elementos distintivos.
+- "paleta_personaje": resume colores principales del personaje.
+- "reglas_consistencia": explica qué debe mantenerse fijo entre generaciones futuras.
+- "prompt_personaje_base": construye un prompt base limpio y útil para regenerar el personaje con consistencia.
+- "estilo_visual_preview": resume el estilo ideal de previsualización.
+- "tipo_preview": elige uno de estos valores: full_body, portrait, bust, character_sheet, 3_4_view, front_view, unknown.
+- "notas_parseo": incluye advertencias breves si falta algo o si hay posibles elementos protegidos.
+
+No expliques nada fuera del JSON.</textarea>
+                </div>
+
                 <!-- Sección 1: Esencia -->
                 <div>
                     <h3 class="text-sm font-bold text-gray-800 mb-3 border-b border-gray-100 pb-2"><i class="fa-solid fa-fingerprint text-purple-500 mr-1"></i> 1. Esencia</h3>

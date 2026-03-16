@@ -849,6 +849,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Lógica del Asistente de IA (Copiar Prompt) ---
+    document.getElementById('btn-copy-ai-prompt')?.addEventListener('click', function() {
+        const promptText = document.getElementById('ai-helper-prompt').value;
+        navigator.clipboard.writeText(promptText).then(() => {
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="fa-solid fa-check"></i> Copiado';
+            this.classList.remove('text-indigo-600', 'border-indigo-200');
+            this.classList.add('text-green-600', 'border-green-300', 'bg-green-50');
+            
+            setTimeout(() => {
+                this.innerHTML = originalHtml;
+                this.classList.add('text-indigo-600', 'border-indigo-200');
+                this.classList.remove('text-green-600', 'border-green-300', 'bg-green-50');
+            }, 2000);
+        }).catch(err => console.error('Error al copiar: ', err));
+    });
+
     // --- Lógica del Creador de Personajes ---
     const charInputs = ['char-name', 'char-type', 'char-image', 'char-desc', 'char-traits', 'char-clothing', 'char-accessories', 'char-palette', 'char-rules', 'char-prompt-base'];
     let isPromptManuallyEdited = false;
