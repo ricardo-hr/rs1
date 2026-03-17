@@ -904,6 +904,39 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCharacterPreview(); // Actualizar JSON y UI
         closePromptEditor();
     });
+    
+    // --- Lógica del Dev Tips Modal (Cheat Sheet) ---
+    const devTipsModal = document.getElementById('devTipsModal');
+    
+    document.getElementById('btn-dev-tips')?.addEventListener('click', () => {
+        devTipsModal.classList.remove('hidden');
+    });
+
+    document.getElementById('closeDevTipsModal')?.addEventListener('click', () => {
+        devTipsModal.classList.add('hidden');
+    });
+
+    // Copiar código y cerrar si se hace clic fuera del contenido
+    devTipsModal?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-copy-code');
+        if (btn) {
+            const preElement = btn.nextElementSibling;
+            if (preElement) {
+                const code = preElement.textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado';
+                    btn.classList.add('text-green-400');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('text-green-400');
+                    }, 2000);
+                });
+            }
+        } else if (e.target === devTipsModal) {
+            devTipsModal.classList.add('hidden');
+        }
+    });
     // ----------------------------------------
 
     // --- Lógica del Normalizador de Prompt ---
