@@ -275,11 +275,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                     
-                    // Extraer ID de Drive de forma robusta (incluso si el campo drive_file_id viene vacío pero sí tenemos file_url)
-                    let driveId = (slide.drive_file_id && slide.drive_file_id !== 'null') ? slide.drive_file_id.trim() : null;
-                    if (!driveId && slide.file_url && slide.file_url !== 'null') {
+                    // Extraer ID de Drive de forma robusta y registrar qué método funcionó
+                    let driveId = null;
+                    let origenDato = 'Desconocido';
+
+                    if (slide.drive_file_id && String(slide.drive_file_id).trim() !== '' && slide.drive_file_id !== 'null') {
+                        driveId = slide.drive_file_id.trim();
+                        origenDato = 'drive_file_id (Directo)';
+                    } else if (slide.file_url && String(slide.file_url).trim() !== '' && slide.file_url !== 'null') {
                         const match = slide.file_url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                        if (match) driveId = match[1];
+                        if (match) {
+                            driveId = match[1];
+                            origenDato = 'file_url (Regex extraído)';
+                        }
+                    } else if (slide.file_url_view && String(slide.file_url_view).trim() !== '' && slide.file_url_view !== 'null') {
+                        const match = slide.file_url_view.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                        if (match) {
+                            driveId = match[1];
+                            origenDato = 'file_url_view (Regex extraído)';
+                        }
                     }
 
                     // IMPORTANTE: Nunca usar file_url o file_url_view para el src del <img> porque devuelven HTML (el visor de Drive), no la imagen cruda.
@@ -290,8 +304,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Usamos lh3.googleusercontent.com ya que es el estándar actual para evadir bloqueos de cookies de terceros en Drive
                         imgSrc = `https://lh3.googleusercontent.com/d/${driveId}=w1200`;
                         methodBadge = `
-                            <div class="absolute top-3 right-3 bg-gray-900/80 backdrop-blur-sm text-green-400 text-[10px] font-mono px-2 py-1 rounded shadow-sm border border-gray-700 z-10 flex items-center gap-1 cursor-help" title="Bypass lh3.googleusercontent para evadir bloqueo de cookies">
-                                <i class="fa-solid fa-bolt"></i> Vía lh3 (Drive)
+                            <div class="absolute top-2 right-2 flex flex-col items-end gap-1 z-10 pointer-events-none">
+                                <div class="bg-gray-900/80 backdrop-blur-sm text-green-400 text-[9px] font-mono px-2 py-1 rounded shadow-sm border border-gray-700 pointer-events-auto cursor-help" title="Técnica de visualización evadiendo cookies">
+                                    <i class="fa-solid fa-bolt"></i> Vía lh3 (Drive)
+                                </div>
+                                <div class="bg-blue-900/80 backdrop-blur-sm text-blue-300 text-[9px] font-mono px-2 py-1 rounded shadow-sm border border-blue-700 pointer-events-auto cursor-help" title="Campo JSON desde donde se extrajo la foto">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Origen: ${origenDato}
+                                </div>
+                            </div>
+                        `;
+                    } else if (slide.file_url && slide.file_url !== 'null') {
+                        // Fallback directo por si es un link que no sea de Drive (ej. S3, Imgur)
+                        imgSrc = slide.file_url;
+                        methodBadge = `
+                            <div class="absolute top-2 right-2 bg-yellow-900/80 backdrop-blur-sm text-yellow-300 text-[9px] font-mono px-2 py-1 rounded shadow-sm border border-yellow-700 z-10 cursor-help" title="URL Directa (No Drive)">
+                                <i class="fa-solid fa-link"></i> Origen: file_url
                             </div>
                         `;
                     }
