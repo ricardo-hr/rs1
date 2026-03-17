@@ -30,9 +30,6 @@
                         <p class="text-[10px] text-gray-400 font-mono uppercase tracking-widest">Workspace</p>
                     </div>
                 </div>
-            <button id="btn-dev-tips" class="text-xs text-gray-500 hover:text-purple-600 transition flex items-center gap-1.5 border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50" title="Ver Snippets de Código">
-                <i class="fa-solid fa-code"></i> <span class="hidden sm:inline font-semibold">Dev Tips</span>
-            </button>
             </div>
             <!-- Navegación Principal de Módulos -->
             <div class="flex space-x-2 bg-gray-100 p-1 rounded-xl">
@@ -364,6 +361,7 @@ No expliques nada fuera del JSON.</textarea>
             <div id="generated-preview-container" class="hidden mb-6 flex flex-col items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                 <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4 w-full text-left"><i class="fa-solid fa-wand-magic-sparkles text-purple-400 mr-1"></i> Previsualización Generada</h4>
                 <div class="relative w-full max-w-sm aspect-square bg-gray-100 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+                    <div id="generated-preview-method" class="absolute top-3 right-3 bg-gray-900/80 backdrop-blur-sm text-blue-400 text-[10px] font-mono px-2 py-1 rounded shadow-sm border border-gray-700 z-10 flex items-center gap-1 hidden cursor-help" title="Método con el que el Proxy Vercel procesó la imagen"></div>
                     <img id="generated-preview-img" src="" class="w-full h-full object-cover">
                 </div>
             </div>
@@ -419,54 +417,6 @@ No expliques nada fuera del JSON.</textarea>
             <div class="p-4 border-t border-gray-200 bg-white flex justify-end gap-3">
                 <button id="cancelPromptModal" class="px-5 py-2.5 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg transition-colors">Cancelar</button>
                 <button id="applyPromptModal" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition-colors flex items-center gap-2"><i class="fa-solid fa-check"></i> Aplicar Cambios</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Dev Tips -->
-    <div id="devTipsModal" class="fixed inset-0 z-50 hidden bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white w-full max-w-2xl rounded-xl overflow-hidden shadow-2xl relative flex flex-col max-h-[85vh] animate-fade-in-up">
-            <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
-                <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-laptop-code text-purple-600 mr-2"></i>Cheat Sheet de Desarrollo</h3>
-                <button id="closeDevTipsModal" class="text-gray-400 hover:text-gray-800 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            </div>
-            <div class="p-6 flex-1 overflow-y-auto bg-gray-50/50 space-y-6">
-                
-                <!-- Tip 1 -->
-                <div>
-                    <h4 class="font-bold text-gray-800 mb-1 flex items-center gap-2"><i class="fa-brands fa-google-drive text-blue-500"></i> Cargar imágenes de Drive en &lt;img&gt;</h4>
-                    <p class="text-xs text-gray-600 mb-3">Evita el error 403 por bloqueo de cookies de terceros en el navegador, usando el dominio <code>lh3.googleusercontent.com</code>.</p>
-                    <div class="bg-gray-900 rounded-lg p-4 relative group shadow-inner">
-                        <button class="btn-copy-code absolute top-2 right-2 text-gray-400 hover:text-white bg-white/10 px-2 py-1 rounded text-[10px] transition flex items-center gap-1"><i class="fa-regular fa-copy"></i> Copiar</button>
-                        <pre class="text-xs font-mono text-green-400 whitespace-pre-wrap overflow-x-auto pt-4"><code>// 1. Extraer ID del enlace de Drive
-const url = "https://drive.google.com/file/d/1A2b3C4d5E6f7G8h9I0j/view";
-const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-const driveId = match ? match[1] : null;
-
-// 2. Construir URL lh3 (con ancho optimizado =w1200)
-const imgSrc = `https://lh3.googleusercontent.com/d/${driveId}=w1200`;
-document.getElementById('mi-imagen').src = imgSrc;</code></pre>
-                    </div>
-                </div>
-
-                <!-- Tip 2 -->
-                <div class="pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800 mb-1 flex items-center gap-2"><i class="fa-solid fa-server text-gray-500"></i> Proxy Vercel para Binarios</h4>
-                    <p class="text-xs text-gray-600 mb-3">Evita que se corrompan los archivos PNG/JPG al pasar por <code>fetch()</code> en el servidor Serverless (Next.js/Vercel).</p>
-                    <div class="bg-gray-900 rounded-lg p-4 relative group shadow-inner">
-                        <button class="btn-copy-code absolute top-2 right-2 text-gray-400 hover:text-white bg-white/10 px-2 py-1 rounded text-[10px] transition flex items-center gap-1"><i class="fa-regular fa-copy"></i> Copiar</button>
-                        <pre class="text-xs font-mono text-green-400 whitespace-pre-wrap overflow-x-auto pt-4"><code>// ⚠️ CLAVE: Leer como ArrayBuffer para no alterar los bytes originales
-const response = await fetch(webhookUrl, { method: 'POST', body: JSON.stringify(req.body) });
-
-const arrayBuffer = await response.arrayBuffer();
-const buffer = Buffer.from(arrayBuffer);
-
-// Mantener el Content-Type original (ej. image/png)
-res.setHeader('Content-Type', response.headers.get('content-type'));
-res.status(response.status).send(buffer);</code></pre>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>

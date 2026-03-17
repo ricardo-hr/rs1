@@ -284,14 +284,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // IMPORTANTE: Nunca usar file_url o file_url_view para el src del <img> porque devuelven HTML (el visor de Drive), no la imagen cruda.
                     let imgSrc = null;
+                    let methodBadge = '';
+                    
                     if (driveId) {
                         // Usamos lh3.googleusercontent.com ya que es el estándar actual para evadir bloqueos de cookies de terceros en Drive
                         imgSrc = `https://lh3.googleusercontent.com/d/${driveId}=w1200`;
+                        methodBadge = `
+                            <div class="absolute top-3 right-3 bg-gray-900/80 backdrop-blur-sm text-green-400 text-[10px] font-mono px-2 py-1 rounded shadow-sm border border-gray-700 z-10 flex items-center gap-1 cursor-help" title="Bypass lh3.googleusercontent para evadir bloqueo de cookies">
+                                <i class="fa-solid fa-bolt"></i> Vía lh3 (Drive)
+                            </div>
+                        `;
                     }
 
                     if (imgSrc) {
                         imagePreview = `
-                            <div class="mb-4 bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block w-full max-w-xs">
+                            <div class="mb-4 relative bg-white p-2 rounded-lg border border-gray-200 shadow-sm inline-block w-full max-w-xs">
+                                ${methodBadge}
                                 <img src="${imgSrc}" alt="Slide ${slide.numero}" class="w-full rounded object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
                                 <div class="hidden text-xs text-red-500 mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-center gap-2">
                                     <i class="fa-solid fa-image-slash text-lg"></i>
@@ -1163,6 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Procesamiento inteligente: Soporta tanto binario puro como JSON con base64 (típico de n8n)
             const contentType = response.headers.get('content-type') || '';
             let finalImgUrl = '';
+            let debugMethod = '';
 
             if (contentType.includes('application/json')) {
                 const jsonData = await response.json();
@@ -1178,17 +1187,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error("La respuesta JSON no contiene la propiedad binaria 'data'.");
                 }
                 finalImgUrl = base64Data.startsWith('data:') ? base64Data : `data:image/png;base64,${base64Data}`;
+                debugMethod = 'Base64 (JSON)';
             } else {
                 // Es un binario puro directamente (ej. image/png, image/jpeg)
                 const blob = await response.blob();
                 finalImgUrl = URL.createObjectURL(blob);
+                debugMethod = 'Blob (Binario Proxy)';
             }
             
             const previewContainer = document.getElementById('generated-preview-container');
             const previewImg = document.getElementById('generated-preview-img');
+            const previewMethodBadge = document.getElementById('generated-preview-method');
             
             previewImg.src = finalImgUrl;
             previewContainer.classList.remove('hidden');
+            
+            if (previewMethodBadge) {
+                previewMethodBadge.innerHTML = `<i class="fa-solid fa-server"></i> ${debugMethod}`;
+                previewMethodBadge.classList.remove('hidden');
+            }
         } catch (error) {
             console.error('Error al previsualizar:', error);
             alert(`No se pudo previsualizar: ${error.message}`);
