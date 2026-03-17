@@ -305,9 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         imgSrc = `https://lh3.googleusercontent.com/d/${driveId}=w1200`;
                         methodBadge = `
                             <div class="absolute top-2 right-2 flex flex-col items-end gap-1 z-10 pointer-events-none">
-                                <div class="bg-gray-900/80 backdrop-blur-sm text-green-400 text-[9px] font-mono px-2 py-1 rounded shadow-sm border border-gray-700 pointer-events-auto cursor-help" title="Técnica de visualización evadiendo cookies">
-                                    <i class="fa-solid fa-bolt"></i> Vía lh3 (Drive)
-                                </div>
                                 <div class="bg-blue-900/80 backdrop-blur-sm text-blue-300 text-[9px] font-mono px-2 py-1 rounded shadow-sm border border-blue-700 pointer-events-auto cursor-help" title="Campo JSON desde donde se extrajo la foto">
                                     <i class="fa-solid fa-magnifying-glass"></i> Origen: ${origenDato}
                                 </div>
